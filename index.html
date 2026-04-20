@@ -423,6 +423,7 @@ tbody tr:hover{background:rgba(255,255,255,0.02);}
 .next-exam-banner svg{width:16px;height:16px;color:var(--yellow);flex-shrink:0;}
 .next-exam-banner strong{color:var(--yellow);}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="orb orb1"></div>
@@ -865,15 +866,131 @@ const DEFAULT_CLASSES = [
 // ═══════════════════════════════════════════════════════════
 //  DATA LAYER
 // ═══════════════════════════════════════════════════════════
-function getData(){
+const SUPABASE_URL = "https://xlfznmhnmcselglnrrnu.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZnpubWhubWNzZWxnbG5ycm51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2OTc1NTcsImV4cCI6MjA5MjI3MzU1N30.dPiA5hVFSt5HhGHOnCIAg_KE1ankB7JOGFlUHQ2rCyA";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let appCache = {classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]};
+let saveTimer = null;
+let lastSavedJson = '';
+
+function normalizeData(d){
+  const next = d && typeof d === 'object' ? d : {};
+  if(!Array.isArray(next.classes) || !next.classes.length) next.classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
+  if(!Array.isArray(next.schedules)) next.schedules = [];
+  return next;
+}
+
+function readLegacyLocalData(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
-    if(raw) return JSON.parse(raw);
+    if(raw) return normalizeData(JSON.parse(raw));
   }catch(e){}
-  return {classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]};
+  return null;
 }
-function saveData(d){ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }
+
+function persistLegacyLocalCopy(d){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }catch(e){}
+}
+
+function getData(){
+  return appCache;
+}
+
+async function writeCloudData(d){
+  const normalized = normalizeData(d);
+  const payloadJson = JSON.stringify(normalized);
+  appCache = normalized;
+  persistLegacyLocalCopy(normalized);
+  lastSavedJson = payloadJson;
+
+  const { error } = await supabaseClient
+    .from('app_state')
+    .upsert({ id: 'singleton', data: normalized, updated_at: new Date().toISOString() });
+
+  if(error) throw error;
+}
+
+function saveData(d){
+  const normalized = normalizeData(d);
+  appCache = normalized;
+  persistLegacyLocalCopy(normalized);
+
+  if(saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{
+      await writeCloudData(normalized);
+    }catch(error){
+      console.error('Cloud save failed', error);
+      try{ showToast('Save failed. Please try again.','error'); }catch(e){}
+    }
+  }, 180);
+}
 function uid(){ return '_'+Math.random().toString(36).substr(2,9); }
+
+function rerenderCurrentPage(){
+  try{
+    if(currentPage==='home') renderHome();
+    else if(currentPage==='class') renderClassPage(currentClassId);
+    else if(currentPage==='exam') renderExamPage(currentClassId, currentExamId);
+    else if(currentPage==='recaps') renderRecapsPage();
+    else if(currentPage==='admin') renderAdminPanel();
+    else renderHome();
+  }catch(error){
+    console.error('Realtime rerender failed', error);
+  }
+}
+
+async function bootstrapCloudData(){
+  const legacy = readLegacyLocalData();
+
+  try{
+    const { data, error } = await supabaseClient
+      .from('app_state')
+      .select('data')
+      .eq('id', 'singleton')
+      .maybeSingle();
+
+    if(error) throw error;
+
+    const cloudData = data && data.data ? normalizeData(data.data) : null;
+    const cloudIsEmpty = !cloudData || !Array.isArray(cloudData.classes) || cloudData.classes.every(c => !Array.isArray(c.exams) || c.exams.length === 0) && (!Array.isArray(cloudData.schedules) || cloudData.schedules.length === 0);
+
+    if(cloudIsEmpty && legacy) {
+      await writeCloudData(legacy);
+      appCache = legacy;
+      return;
+    }
+
+    if(cloudData) {
+      appCache = cloudData;
+      persistLegacyLocalCopy(cloudData);
+      lastSavedJson = JSON.stringify(cloudData);
+      return;
+    }
+  }catch(error){
+    console.error('Cloud load failed', error);
+  }
+
+  appCache = normalizeData(legacy || {classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]});
+  persistLegacyLocalCopy(appCache);
+}
+
+function subscribeToCloudUpdates(){
+  supabaseClient
+    .channel('bioche-app-state')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_state' }, payload => {
+      const nextData = payload && payload.new ? payload.new.data : null;
+      if(!nextData) return;
+      const normalized = normalizeData(nextData);
+      const nextJson = JSON.stringify(normalized);
+      if(nextJson === lastSavedJson) return;
+      appCache = normalized;
+      persistLegacyLocalCopy(normalized);
+      lastSavedJson = nextJson;
+      rerenderCurrentPage();
+    })
+    .subscribe();
+}
 
 // ═══════════════════════════════════════════════════════════
 //  AUTH
@@ -1634,12 +1751,14 @@ function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 // ═══════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════
-function init(){
+async function init(){
+  await bootstrapCloudData();
   const d=getData();
   if(!d.classes||!d.classes.length){
     const fresh={classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]};
     saveData(fresh);
   } else if(!d.schedules){ d.schedules=[]; saveData(d); }
+  subscribeToCloudUpdates();
   renderHome();
 
   // Keyboard: Escape closes modals
