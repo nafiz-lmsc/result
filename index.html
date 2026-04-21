@@ -5,1341 +5,871 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>BioChe — Exam Results Portal</title>
 <style>
-:root{
-  --bg:#0a0a0a;--bg2:#111;--bg3:#161616;
-  --glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
-  --text:#f0f0f0;--muted:#888;--dim:#444;
-  --neu-dark:rgba(0,0,0,0.9);--neu-light:rgba(255,255,255,0.06);
-  --accent:#d4d4d4;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa;
-}
-*{margin:0;padding:0;box-sizing:border-box;}
-html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
-
-/* Animated Grid Background */
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
-  background-size:60px 60px;animation:gridScroll 30s linear infinite;
-}
-body::after{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,255,255,0.04) 0%,transparent 70%);
-}
-@keyframes gridScroll{0%{transform:translateY(0);}100%{transform:translateY(60px);}}
-
-/* Floating Orbs */
-.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:orbFloat 12s ease-in-out infinite;}
-.orb1{width:400px;height:400px;background:rgba(255,255,255,0.02);top:-10%;left:-10%;animation-delay:0s;}
-.orb2{width:300px;height:300px;background:rgba(255,255,255,0.015);bottom:5%;right:-5%;animation-delay:-6s;}
-@keyframes orbFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-30px);}}
-
-/* App Shell */
-#app{position:relative;z-index:1;min-height:100vh;}
-
-/* ─── Navbar ─── */
-nav{
-  position:sticky;top:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 24px;height:64px;
-  background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--border);
-}
-.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer;text-decoration:none;}
-.nav-logo-icon{
-  width:36px;height:36px;border-radius:10px;
-  background:linear-gradient(135deg,#fff 0%,#888 100%);
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:14px;color:#000;letter-spacing:-0.5px;
-  box-shadow:0 2px 12px rgba(255,255,255,0.15),inset 0 1px 0 rgba(255,255,255,0.3);
-}
-.nav-logo-text{font-size:20px;font-weight:700;letter-spacing:-0.5px;color:var(--text);}
-.nav-logo-text span{color:var(--muted);font-weight:400;}
-.nav-right{display:flex;align-items:center;gap:12px;}
-.nav-back-btn{
-  display:none;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;
-  border:1px solid var(--border);background:var(--glass);color:var(--muted);
-  cursor:pointer;font-size:13px;transition:all .2s;
-}
-.nav-back-btn:hover{border-color:var(--border2);color:var(--text);background:var(--glass2);}
-.nav-back-btn.show{display:flex;}
-.admin-btn{
-  display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;
-  border:1px solid var(--border2);background:var(--glass);color:var(--accent);
-  cursor:pointer;font-size:13px;font-weight:500;transition:all .25s;letter-spacing:0.2px;
-  box-shadow:0 2px 8px var(--neu-dark),inset 0 1px 0 var(--neu-light);
-}
-.admin-btn:hover{background:var(--glass2);border-color:rgba(255,255,255,0.25);box-shadow:0 4px 16px var(--neu-dark),inset 0 1px 0 var(--neu-light);}
-.admin-btn svg{width:14px;height:14px;}
-.admin-badge{
-  display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;
-  background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.2);color:var(--green);font-size:12px;
-}
-.admin-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-
-/* ─── Glassmorphic Cards ─── */
-.glass-card{
-  background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:1px solid var(--border);border-radius:16px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 var(--neu-light);
-}
-.glass-card:hover{border-color:var(--border2);background:var(--glass2);}
-
-/* ─── Neumorphic Inputs ─── */
-.neu-input{
-  width:100%;padding:11px 14px;border-radius:10px;font-size:14px;color:var(--text);
-  background:#0d0d0d;border:1px solid var(--border);
-  box-shadow:inset 3px 3px 7px rgba(0,0,0,0.8),inset -2px -2px 5px rgba(255,255,255,0.03);
-  transition:all .2s;outline:none;
-}
-.neu-input:focus{border-color:var(--border2);box-shadow:inset 3px 3px 7px rgba(0,0,0,0.8),inset -2px -2px 5px rgba(255,255,255,0.03),0 0 0 3px rgba(255,255,255,0.05);}
-.neu-input::placeholder{color:var(--dim);}
-select.neu-input option{background:#1a1a1a;color:var(--text);}
-
-/* ─── Buttons ─── */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;
-  transition:all .2s;border:1px solid transparent;letter-spacing:0.2px;
-}
-.btn-primary{
-  background:linear-gradient(135deg,#e8e8e8 0%,#bbb 100%);color:#000;border-color:rgba(255,255,255,0.3);
-  box-shadow:0 4px 14px rgba(0,0,0,0.6),0 1px 0 rgba(255,255,255,0.4) inset;
-}
-.btn-primary:hover{background:linear-gradient(135deg,#fff 0%,#ccc 100%);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.7);}
-.btn-secondary{
-  background:var(--glass);color:var(--accent);border-color:var(--border2);
-  box-shadow:0 2px 8px rgba(0,0,0,0.5),inset 0 1px 0 var(--neu-light);
-}
-.btn-secondary:hover{background:var(--glass2);border-color:rgba(255,255,255,0.25);}
-.btn-danger{
-  background:rgba(248,113,113,0.1);color:var(--red);border-color:rgba(248,113,113,0.2);
-  box-shadow:0 2px 8px rgba(0,0,0,0.4);
-}
-.btn-danger:hover{background:rgba(248,113,113,0.18);}
-.btn-success{
-  background:rgba(74,222,128,0.1);color:var(--green);border-color:rgba(74,222,128,0.2);
-}
-.btn-success:hover{background:rgba(74,222,128,0.18);}
-.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
-.btn svg{width:14px;height:14px;}
-
-/* ─── Page Layout ─── */
-.page{display:none;padding:32px 24px;max-width:1200px;margin:0 auto;}
-.page.active{display:block;}
-.page-header{margin-bottom:36px;}
-.page-title{font-size:28px;font-weight:700;letter-spacing:-0.8px;margin-bottom:6px;}
-.page-subtitle{color:var(--muted);font-size:14px;}
-
-/* ─── Home Page ─── */
-.hero{
-  text-align:center;padding:60px 20px 48px;
-}
-.hero-tag{
-  display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;
-  border:1px solid var(--border2);background:var(--glass);color:var(--muted);font-size:12px;
-  letter-spacing:0.8px;text-transform:uppercase;margin-bottom:24px;
-}
-.hero-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
-.hero-title{
-  font-size:clamp(36px,6vw,64px);font-weight:800;letter-spacing:-2px;
-  background:linear-gradient(180deg,#fff 0%,#666 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  margin-bottom:14px;line-height:1.1;
-}
-.hero-title span{
-  background:linear-gradient(135deg,#e0e0e0 0%,#888 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.hero-sub{color:var(--muted);font-size:16px;max-width:480px;margin:0 auto 40px;line-height:1.6;}
-.hero-stats{display:flex;align-items:center;justify-content:center;gap:32px;margin-bottom:48px;flex-wrap:wrap;}
-.hero-stat{text-align:center;}
-.hero-stat-num{font-size:24px;font-weight:700;color:var(--text);}
-.hero-stat-lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.8px;}
-
-/* Classes Grid */
-.section-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
-.classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:48px;}
-.class-card{
-  position:relative;padding:24px;border-radius:16px;cursor:pointer;overflow:hidden;
-  background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);
-  transition:all .3s;box-shadow:0 4px 24px rgba(0,0,0,0.4),inset 0 1px 0 var(--neu-light);
-}
-.class-card::before{
-  content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 60%);
-  opacity:0;transition:opacity .3s;
-}
-.class-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,0.6),inset 0 1px 0 var(--neu-light);}
-.class-card:hover::before{opacity:1;}
-.class-card-icon{
-  width:44px;height:44px;border-radius:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,0.06);border:1px solid var(--border2);font-size:20px;
-}
-.class-card-name{font-size:16px;font-weight:600;margin-bottom:4px;}
-.class-card-count{font-size:12px;color:var(--muted);}
-.class-card-next{
-  margin-top:12px;padding-top:12px;border-top:1px solid var(--border);
-  font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px;
-}
-.class-card-next span{color:var(--yellow);}
-.class-card-arrow{
-  position:absolute;right:16px;top:50%;transform:translateY(-50%);
-  color:var(--dim);opacity:0;transition:all .3s;font-size:18px;
-}
-.class-card:hover .class-card-arrow{opacity:1;right:12px;}
-
-/* Upcoming Exams & Announcements */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px;}
-@media(max-width:768px){.two-col{grid-template-columns:1fr;}}
-.section-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;backdrop-filter:blur(16px);}
-.section-card-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
-.section-card-title svg{width:14px;height:14px;color:var(--muted);}
-.upcoming-item{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 0;border-bottom:1px solid var(--border);
-}
-.upcoming-item:last-child{border-bottom:none;}
-.upcoming-class{font-size:13px;font-weight:500;}
-.upcoming-exam{font-size:12px;color:var(--muted);}
-.upcoming-date{font-size:11px;color:var(--yellow);background:rgba(251,191,36,0.08);padding:3px 8px;border-radius:6px;border:1px solid rgba(251,191,36,0.15);}
-.no-data{color:var(--dim);font-size:13px;text-align:center;padding:16px;}
-
-/* ─── Results Page ─── */
-.exams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
-.exam-card{
-  padding:20px;border-radius:14px;cursor:pointer;
-  background:var(--glass);border:1px solid var(--border);
-  transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,0.4),inset 0 1px 0 var(--neu-light);
-}
-.exam-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
-.exam-card-title{font-size:15px;font-weight:600;margin-bottom:8px;}
-.exam-card-date{font-size:12px;color:var(--muted);margin-bottom:12px;}
-.exam-card-stats{display:flex;gap:12px;}
-.exam-stat{flex:1;text-align:center;background:rgba(255,255,255,0.03);border-radius:8px;padding:8px;border:1px solid var(--border);}
-.exam-stat-val{font-size:16px;font-weight:700;}
-.exam-stat-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
-
-/* ─── Exam Results Table ─── */
-.results-meta{
-  display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px;
-}
-.meta-pill{
-  display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;
-  background:var(--glass);border:1px solid var(--border);font-size:13px;
-}
-.meta-pill-val{font-weight:600;}
-.meta-pill-lbl{color:var(--muted);font-size:11px;}
-.results-table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-thead tr{background:rgba(255,255,255,0.04);border-bottom:1px solid var(--border);}
-th{padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);font-weight:500;}
-td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);}
-tbody tr:last-child td{border-bottom:none;}
-tbody tr:hover{background:rgba(255,255,255,0.02);}
-.rank-badge{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:24px;height:24px;border-radius:6px;font-size:11px;font-weight:700;
-}
-.rank-1{background:rgba(251,191,36,0.15);color:#fbbf24;border:1px solid rgba(251,191,36,0.25);}
-.rank-2{background:rgba(192,192,192,0.12);color:#c0c0c0;border:1px solid rgba(192,192,192,0.2);}
-.rank-3{background:rgba(180,100,50,0.15);color:#cd7f32;border:1px solid rgba(180,100,50,0.25);}
-.rank-other{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border);}
-.grade-badge{
-  display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;
-}
-.grade-A+{background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.2);}
-.grade-A{background:rgba(74,222,128,0.09);color:#86efac;}
-.grade-B{background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);}
-.grade-C{background:rgba(251,191,36,0.1);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);}
-.grade-D{background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2);}
-.grade-F{background:rgba(248,113,113,0.15);color:#ef4444;}
-.pct-bar-wrap{width:80px;height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
-.pct-bar{height:100%;background:linear-gradient(90deg,#666,#ccc);border-radius:2px;transition:width .5s;}
-
-/* ─── Recaps Page ─── */
-.recap-tabs{display:flex;gap:8px;margin-bottom:28px;background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:5px;}
-.recap-tab{
-  flex:1;padding:9px;border-radius:8px;border:none;background:transparent;color:var(--muted);
-  cursor:pointer;font-size:13px;font-weight:500;transition:all .2s;
-}
-.recap-tab.active{background:rgba(255,255,255,0.08);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.4);}
-.recap-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
-.recap-filters select{padding:8px 12px;border-radius:9px;border:1px solid var(--border);background:#0d0d0d;color:var(--text);font-size:13px;cursor:pointer;outline:none;}
-.recap-table-wrap{overflow-x:auto;}
-.recap-summary-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
-.summary-card{
-  padding:16px;border-radius:12px;background:var(--glass);border:1px solid var(--border);
-  box-shadow:0 4px 16px rgba(0,0,0,0.4),inset 0 1px 0 var(--neu-light);
-}
-.summary-card-val{font-size:22px;font-weight:700;margin-bottom:4px;}
-.summary-card-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
-
-/* ─── Admin Panel ─── */
-.admin-layout{display:grid;grid-template-columns:220px 1fr;gap:0;min-height:calc(100vh - 64px);}
-.admin-sidebar{
-  background:var(--bg2);border-right:1px solid var(--border);padding:20px 12px;
-  position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;
-}
-.admin-sidebar-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);padding:0 8px;margin-bottom:8px;}
-.admin-nav-item{
-  display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;
-  cursor:pointer;font-size:13px;color:var(--muted);transition:all .2s;margin-bottom:2px;
-  border:1px solid transparent;
-}
-.admin-nav-item:hover{background:var(--glass);color:var(--text);}
-.admin-nav-item.active{background:var(--glass2);color:var(--text);border-color:var(--border);}
-.admin-nav-item svg{width:14px;height:14px;flex-shrink:0;}
-.admin-content{padding:28px;overflow-y:auto;}
-.admin-section{display:none;}
-.admin-section.active{display:block;}
-.admin-section-title{font-size:20px;font-weight:700;margin-bottom:4px;letter-spacing:-0.4px;}
-.admin-section-sub{font-size:13px;color:var(--muted);margin-bottom:24px;}
-
-/* Admin Cards */
-.admin-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px;}
-.admin-stat-card{
-  padding:18px;border-radius:12px;background:var(--glass);border:1px solid var(--border);
-  box-shadow:0 4px 16px rgba(0,0,0,0.4),inset 0 1px 0 var(--neu-light);
-}
-.admin-stat-card-num{font-size:26px;font-weight:800;letter-spacing:-1px;}
-.admin-stat-card-lbl{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:0.5px;}
-
-/* Admin Forms */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.form-grid.three{grid-template-columns:1fr 1fr 1fr;}
-.form-grid.one{grid-template-columns:1fr;}
-@media(max-width:640px){.form-grid,.form-grid.three{grid-template-columns:1fr;}}
-.form-group{display:flex;flex-direction:column;gap:6px;}
-.form-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
-.form-section{
-  background:var(--glass);border:1px solid var(--border);border-radius:14px;
-  padding:20px;margin-bottom:20px;
-}
-.form-section-title{font-size:14px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
-
-/* Admin Item Lists */
-.admin-list-item{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;border-radius:10px;border:1px solid var(--border);
-  background:var(--glass);margin-bottom:8px;transition:all .2s;
-}
-.admin-list-item:hover{border-color:var(--border2);background:var(--glass2);}
-.admin-list-item-info{flex:1;}
-.admin-list-item-name{font-size:14px;font-weight:500;margin-bottom:2px;}
-.admin-list-item-sub{font-size:12px;color:var(--muted);}
-.admin-list-item-actions{display:flex;gap:6px;}
-
-/* Modal */
-.modal-overlay{
-  position:fixed;inset:0;z-index:200;
-  background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  display:none;align-items:center;justify-content:center;padding:20px;
-}
-.modal-overlay.show{display:flex;}
-.modal{
-  background:#111;border:1px solid var(--border2);border-radius:18px;
-  padding:28px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(0,0,0,0.9),inset 0 1px 0 var(--neu-light);
-  animation:modalIn .25s ease;
-}
-.modal-wide{max-width:680px;}
-@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(0.97);}to{opacity:1;transform:none;}}
-.modal-title{font-size:18px;font-weight:700;margin-bottom:4px;letter-spacing:-0.3px;}
-.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px;}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;}
-
-/* Login specific */
-.login-logo{text-align:center;margin-bottom:24px;}
-.login-logo-icon{
-  width:56px;height:56px;border-radius:16px;margin:0 auto 12px;
-  background:linear-gradient(135deg,#fff 0%,#888 100%);
-  display:flex;align-items:center;justify-content:center;
-  font-weight:900;font-size:20px;color:#000;
-  box-shadow:0 4px 20px rgba(255,255,255,0.1),inset 0 1px 0 rgba(255,255,255,0.5);
-}
-.login-title{font-size:20px;font-weight:700;}
-.login-sub{font-size:13px;color:var(--muted);margin-top:4px;}
-.error-msg{
-  background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);
-  color:var(--red);font-size:13px;padding:10px 14px;border-radius:8px;margin-top:12px;display:none;
-}
-.error-msg.show{display:block;}
-
-/* Toast */
-.toast{
-  position:fixed;bottom:24px;right:24px;z-index:300;
-  padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;
-  background:rgba(20,20,20,0.95);border:1px solid var(--border2);
-  box-shadow:0 8px 32px rgba(0,0,0,0.7);
-  transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none;
-}
-.toast.show{transform:none;opacity:1;}
-.toast.success{border-color:rgba(74,222,128,0.3);color:var(--green);}
-.toast.error{border-color:rgba(248,113,113,0.3);color:var(--red);}
-
-/* Breadcrumb */
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:20px;flex-wrap:wrap;}
-.breadcrumb span{cursor:pointer;transition:color .2s;}
-.breadcrumb span:hover{color:var(--text);}
-.breadcrumb .sep{color:var(--dim);cursor:default;}
-
-/* Empty state */
-.empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
-.empty-state-icon{font-size:40px;margin-bottom:12px;opacity:0.4;}
-.empty-state-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;}
-.empty-state-sub{font-size:13px;}
-
-/* Responsive */
-@media(max-width:768px){
-  .admin-layout{grid-template-columns:1fr;}
-  .admin-sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);display:flex;gap:4px;padding:8px;overflow-x:auto;}
-  .admin-sidebar-title{display:none;}
-  .admin-nav-item{white-space:nowrap;padding:7px 10px;}
-  .hero-title{letter-spacing:-1px;}
-  nav{padding:0 12px;}
-}
-
-/* Scrollbar */
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
-::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2);}
-
-/* Divider */
-.divider{height:1px;background:var(--border);margin:20px 0;}
-
-/* Tag pill */
-.tag{display:inline-flex;align-items:center;padding:3px 8px;border-radius:5px;font-size:11px;background:var(--glass);border:1px solid var(--border);color:var(--muted);}
-
-/* Guardian mobile (admin only) */
-.guardian-mobile{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:4px;}
-.guardian-mobile svg{width:12px;height:12px;}
-
-/* Next exam banner */
-.next-exam-banner{
-  padding:12px 18px;border-radius:10px;background:rgba(251,191,36,0.07);
-  border:1px solid rgba(251,191,36,0.15);display:flex;align-items:center;gap:10px;margin-bottom:20px;
-  font-size:13px;
-}
-.next-exam-banner svg{width:16px;height:16px;color:var(--yellow);flex-shrink:0;}
-.next-exam-banner strong{color:var(--yellow);}
+:root{--bg:#0a0a0a;--bg2:#111;--glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0f0f0;--muted:#888;--dim:#444;--neu-dark:rgba(0,0,0,0.9);--neu-light:rgba(255,255,255,0.06);--accent:#d4d4d4;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:60px 60px;animation:gridScroll 30s linear infinite}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,255,255,0.04) 0%,transparent 70%)}
+@keyframes gridScroll{to{transform:translateY(60px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-30px)}}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:orbFloat 12s ease-in-out infinite}
+.orb1{width:400px;height:400px;background:rgba(255,255,255,0.02);top:-10%;left:-10%}
+.orb2{width:300px;height:300px;background:rgba(255,255,255,0.015);bottom:5%;right:-5%;animation-delay:-6s}
+#app{position:relative;z-index:1;min-height:100vh}
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.nav-logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#fff,#888);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000;box-shadow:0 2px 12px rgba(255,255,255,0.15)}
+.nav-logo-text{font-size:20px;font-weight:700;letter-spacing:-.5px}
+.nav-logo-text span{color:var(--muted);font-weight:400}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-back-btn{display:none;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--glass);color:var(--muted);cursor:pointer;font-size:13px;transition:all .2s}
+.nav-back-btn:hover{border-color:var(--border2);color:var(--text)}
+.nav-back-btn.show{display:flex}
+.sync-ind{display:none;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;font-size:11px;color:var(--muted);background:var(--glass);border:1px solid var(--border)}
+.sync-ind.live .sync-dot{background:var(--green);box-shadow:0 0 6px rgba(74,222,128,.4)}
+.sync-ind.syncing .sync-dot{background:var(--yellow);animation:pulse 1s infinite}
+.sync-ind.err .sync-dot{background:var(--red)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--dim);flex-shrink:0}
+.refresh-btn{display:none;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;background:var(--glass);border:1px solid var(--border);color:var(--muted);font-size:11px;cursor:pointer;transition:all .2s}
+.refresh-btn:hover{border-color:var(--border2);color:var(--text)}
+.refresh-btn.spinning svg{animation:spin .8s linear infinite}
+.refresh-btn svg{width:12px;height:12px}
+.admin-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:10px;border:1px solid var(--border2);background:var(--glass);color:var(--accent);cursor:pointer;font-size:13px;font-weight:500;transition:all .25s;box-shadow:0 2px 8px var(--neu-dark),inset 0 1px 0 var(--neu-light)}
+.admin-btn:hover{background:var(--glass2);border-color:rgba(255,255,255,.25)}
+.admin-btn svg{width:14px;height:14px}
+.admin-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);color:var(--green);font-size:12px}
+.admin-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.neu-input{width:100%;padding:11px 14px;border-radius:10px;font-size:14px;color:var(--text);background:#0d0d0d;border:1px solid var(--border);box-shadow:inset 3px 3px 7px rgba(0,0,0,.8),inset -2px -2px 5px rgba(255,255,255,.03);transition:all .2s;outline:none}
+.neu-input:focus{border-color:var(--border2);box-shadow:inset 3px 3px 7px rgba(0,0,0,.8),inset -2px -2px 5px rgba(255,255,255,.03),0 0 0 3px rgba(255,255,255,.05)}
+.neu-input::placeholder{color:var(--dim)}
+select.neu-input option{background:#1a1a1a;color:var(--text)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border:1px solid transparent;letter-spacing:.2px}
+.btn-primary{background:linear-gradient(135deg,#e8e8e8,#bbb);color:#000;border-color:rgba(255,255,255,.3);box-shadow:0 4px 14px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.4)}
+.btn-primary:hover{background:linear-gradient(135deg,#fff,#ccc);transform:translateY(-1px)}
+.btn-secondary{background:var(--glass);color:var(--accent);border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 var(--neu-light)}
+.btn-secondary:hover{background:var(--glass2);border-color:rgba(255,255,255,.25)}
+.btn-danger{background:rgba(248,113,113,.1);color:var(--red);border-color:rgba(248,113,113,.2)}
+.btn-danger:hover{background:rgba(248,113,113,.18)}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+.btn svg{width:14px;height:14px}
+.page{display:none;padding:32px 24px;max-width:1200px;margin:0 auto}
+.page.active{display:block}
+.page-header{margin-bottom:36px}
+.page-title{font-size:28px;font-weight:700;letter-spacing:-.8px;margin-bottom:6px}
+.page-subtitle{color:var(--muted);font-size:14px}
+.hero{text-align:center;padding:60px 20px 48px}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:999px;border:1px solid var(--border2);background:var(--glass);color:var(--muted);font-size:12px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:24px}
+.hero-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+.hero-title{font-size:clamp(36px,6vw,64px);font-weight:800;letter-spacing:-2px;background:linear-gradient(180deg,#fff,#666);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:14px;line-height:1.1}
+.hero-title span{background:linear-gradient(135deg,#e0e0e0,#888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{color:var(--muted);font-size:16px;max-width:480px;margin:0 auto 40px;line-height:1.6}
+.hero-stats{display:flex;align-items:center;justify-content:center;gap:32px;margin-bottom:48px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat-num{font-size:24px;font-weight:700}
+.hero-stat-lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+.section-label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px}
+.classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:48px}
+.class-card{position:relative;padding:24px;border-radius:16px;cursor:pointer;overflow:hidden;background:var(--glass);backdrop-filter:blur(16px);border:1px solid var(--border);transition:all .3s;box-shadow:0 4px 24px rgba(0,0,0,.4),inset 0 1px 0 var(--neu-light)}
+.class-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.6),inset 0 1px 0 var(--neu-light)}
+.class-card-icon{width:44px;height:44px;border-radius:12px;margin-bottom:16px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid var(--border2);font-size:20px}
+.class-card-name{font-size:16px;font-weight:600;margin-bottom:4px}
+.class-card-count{font-size:12px;color:var(--muted)}
+.class-card-next{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px}
+.class-card-next span{color:var(--yellow)}
+.class-card-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--dim);opacity:0;transition:all .3s;font-size:18px}
+.class-card:hover .class-card-arrow{opacity:1;right:12px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px}
+@media(max-width:768px){.two-col{grid-template-columns:1fr}}
+.section-card{background:var(--glass);border:1px solid var(--border);border-radius:16px;padding:20px;backdrop-filter:blur(16px)}
+.section-card-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-card-title svg{width:14px;height:14px;color:var(--muted)}
+.upcoming-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.upcoming-item:last-child{border-bottom:none}
+.upcoming-class{font-size:13px;font-weight:500}
+.upcoming-exam{font-size:12px;color:var(--muted)}
+.upcoming-date{font-size:11px;color:var(--yellow);background:rgba(251,191,36,.08);padding:3px 8px;border-radius:6px;border:1px solid rgba(251,191,36,.15)}
+.no-data{color:var(--dim);font-size:13px;text-align:center;padding:16px}
+.exams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.exam-card{padding:20px;border-radius:14px;cursor:pointer;background:var(--glass);border:1px solid var(--border);transition:all .3s;box-shadow:0 4px 20px rgba(0,0,0,.4),inset 0 1px 0 var(--neu-light)}
+.exam-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.exam-card-title{font-size:15px;font-weight:600;margin-bottom:8px}
+.exam-card-date{font-size:12px;color:var(--muted);margin-bottom:12px}
+.exam-card-stats{display:flex;gap:12px}
+.exam-stat{flex:1;text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:8px;border:1px solid var(--border)}
+.exam-stat-val{font-size:16px;font-weight:700}
+.exam-stat-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.results-meta{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:28px}
+.meta-pill{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:10px;background:var(--glass);border:1px solid var(--border);font-size:13px}
+.meta-pill-val{font-weight:600}
+.meta-pill-lbl{color:var(--muted);font-size:11px}
+.results-table-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:rgba(255,255,255,.04);border-bottom:1px solid var(--border)}
+th{padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:500}
+td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;font-size:11px;font-weight:700}
+.rank-1{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.25)}
+.rank-2{background:rgba(192,192,192,.12);color:#c0c0c0;border:1px solid rgba(192,192,192,.2)}
+.rank-3{background:rgba(180,100,50,.15);color:#cd7f32;border:1px solid rgba(180,100,50,.25)}
+.rank-other{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)}
+.grade-badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600}
+.grade-Ap{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
+.grade-A{background:rgba(74,222,128,.09);color:#86efac}
+.grade-B{background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2)}
+.grade-C{background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.2)}
+.grade-D{background:rgba(248,113,113,.1);color:#f87171;border:1px solid rgba(248,113,113,.2)}
+.grade-F{background:rgba(248,113,113,.15);color:#ef4444}
+.pct-bar-wrap{width:80px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.pct-bar{height:100%;background:linear-gradient(90deg,#666,#ccc);border-radius:2px;transition:width .5s}
+.recap-tabs{display:flex;gap:8px;margin-bottom:28px;background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:5px}
+.recap-tab{flex:1;padding:9px;border-radius:8px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;transition:all .2s}
+.recap-tab.active{background:rgba(255,255,255,.08);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.recap-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.recap-filters select{padding:8px 12px;border-radius:9px;border:1px solid var(--border);background:#0d0d0d;color:var(--text);font-size:13px;cursor:pointer;outline:none}
+.recap-summary-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.summary-card{padding:16px;border-radius:12px;background:var(--glass);border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 var(--neu-light)}
+.summary-card-val{font-size:22px;font-weight:700;margin-bottom:4px}
+.summary-card-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.admin-layout{display:grid;grid-template-columns:220px 1fr;gap:0;min-height:calc(100vh - 64px)}
+.admin-sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:20px 12px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
+.admin-sidebar-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);padding:0 8px;margin-bottom:8px}
+.admin-nav-item{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .2s;margin-bottom:2px;border:1px solid transparent}
+.admin-nav-item:hover{background:var(--glass);color:var(--text)}
+.admin-nav-item.active{background:var(--glass2);color:var(--text);border-color:var(--border)}
+.admin-nav-item svg{width:14px;height:14px;flex-shrink:0}
+.admin-content{padding:28px;overflow-y:auto}
+.admin-section{display:none}
+.admin-section.active{display:block}
+.admin-section-title{font-size:20px;font-weight:700;margin-bottom:4px;letter-spacing:-.4px}
+.admin-section-sub{font-size:13px;color:var(--muted);margin-bottom:24px}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:28px}
+.admin-stat-card{padding:18px;border-radius:12px;background:var(--glass);border:1px solid var(--border);box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 var(--neu-light)}
+.admin-stat-card-num{font-size:26px;font-weight:800;letter-spacing:-1px}
+.admin-stat-card-lbl{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:640px){.form-grid,.form-grid.three{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.form-section{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:20px}
+.form-section-title{font-size:14px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.admin-list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--glass);margin-bottom:8px;transition:all .2s}
+.admin-list-item:hover{border-color:var(--border2);background:var(--glass2)}
+.admin-list-item-info{flex:1;min-width:0}
+.admin-list-item-name{font-size:14px;font-weight:500;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-list-item-sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-list-item-actions{display:flex;gap:6px;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#111;border:1px solid var(--border2);border-radius:18px;padding:28px;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(0,0,0,.9),inset 0 1px 0 var(--neu-light);animation:modalIn .25s ease}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-logo-icon{width:56px;height:56px;border-radius:16px;margin:0 auto 12px;background:linear-gradient(135deg,#fff,#888);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#000;box-shadow:0 4px 20px rgba(255,255,255,.1)}
+.login-title{font-size:20px;font-weight:700}
+.login-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.error-msg{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);color:var(--red);font-size:13px;padding:10px 14px;border-radius:8px;margin-top:12px;display:none}
+.error-msg.show{display:block}
+.toast{position:fixed;bottom:24px;right:24px;z-index:300;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;background:rgba(20,20,20,.95);border:1px solid var(--border2);box-shadow:0 8px 32px rgba(0,0,0,.7);transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+.toast.show{transform:none;opacity:1}
+.toast.success{border-color:rgba(74,222,128,.3);color:var(--green)}
+.toast.error{border-color:rgba(248,113,113,.3);color:var(--red)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);margin-bottom:20px;flex-wrap:wrap}
+.breadcrumb span{cursor:pointer;transition:color .2s}
+.breadcrumb span:hover{color:var(--text)}
+.breadcrumb .sep{color:var(--dim);cursor:default}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty-state-icon{font-size:40px;margin-bottom:12px;opacity:.4}
+.empty-state-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px}
+.empty-state-sub{font-size:13px}
+.next-exam-banner{padding:12px 18px;border-radius:10px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.15);display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:13px}
+.next-exam-banner svg{width:16px;height:16px;color:var(--yellow);flex-shrink:0}
+.next-exam-banner strong{color:var(--yellow)}
+.guardian-mobile{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:4px}
+.guardian-mobile svg{width:12px;height:12px}
+.cloud-banner{padding:16px 20px;border-radius:14px;background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.15);margin-bottom:20px}
+.cloud-banner-title{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.cloud-banner-title svg{width:16px;height:16px}
+.cloud-banner-desc{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.share-section{padding:16px 20px;border-radius:14px;background:rgba(74,222,128,.05);border:1px solid rgba(74,222,128,.15);margin-bottom:20px}
+.share-section-title{font-size:13px;font-weight:600;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.share-section-title svg{width:14px;height:14px}
+.share-link-wrap{display:flex;gap:8px;align-items:center}
+.share-link-input{flex:1;padding:9px 12px;border-radius:8px;background:#0d0d0d;border:1px solid var(--border);color:var(--muted);font-size:12px;font-family:monospace;outline:none;user-select:all;min-width:0}
+.share-link-input:focus{border-color:var(--border2)}
+@media(max-width:768px){.admin-layout{grid-template-columns:1fr}.admin-sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);display:flex;gap:4px;padding:8px;overflow-x:auto}.admin-sidebar-title{display:none}.admin-nav-item{white-space:nowrap;padding:7px 10px}nav{padding:0 12px}.admin-list-item{flex-direction:column;align-items:flex-start;gap:8px}.admin-list-item-actions{align-self:flex-end}}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
-
 <div id="app">
-  <!-- Navbar -->
-  <nav>
-    <a class="nav-logo" onclick="goHome()">
-      <div class="nav-logo-icon">BC</div>
-      <span class="nav-logo-text">Bio<span>Che</span></span>
-    </a>
-    <div class="nav-right">
-      <button class="nav-back-btn" id="backBtn" onclick="handleBack()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Back
-      </button>
-      <div id="adminStatusBadge"></div>
-      <button class="admin-btn" id="adminBtn" onclick="handleAdminBtnClick()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-        <span id="adminBtnText">Admin</span>
-      </button>
-    </div>
-  </nav>
+<nav>
+<a class="nav-logo" onclick="goHome()"><div class="nav-logo-icon">BC</div><span class="nav-logo-text">Bio<span>Che</span></span></a>
+<div class="nav-right">
+<button class="nav-back-btn" id="backBtn" onclick="handleBack()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Back</button>
+<button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Refresh</button>
+<div class="sync-ind" id="syncInd"><span class="sync-dot"></span><span id="syncText"></span></div>
+<div id="adminStatusBadge"></div>
+<button class="admin-btn" id="adminBtn" onclick="handleAdminBtnClick()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg><span id="adminBtnText">Admin</span></button>
+</div>
+</nav>
 
-  <!-- ═══════════════ HOME PAGE ═══════════════ -->
-  <div class="page active" id="page-home">
-    <div class="hero">
-      <div class="hero-tag">Exam Results Portal</div>
-      <h1 class="hero-title">Bio<span>Che</span> Results</h1>
-      <p class="hero-sub">Check your exam results, track your progress, and stay updated with upcoming examinations.</p>
-      <div class="hero-stats" id="heroStats"></div>
-    </div>
-    <div style="max-width:1100px;margin:0 auto;padding:0 4px;">
-      <div class="section-label">Select Your Class</div>
-      <div class="classes-grid" id="classesGrid"></div>
-      <div class="two-col">
-        <div class="section-card" id="upcomingCard">
-          <div class="section-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Upcoming Exams
-          </div>
-          <div id="upcomingList"></div>
-        </div>
-        <div class="section-card" id="recentCard">
-          <div class="section-card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Recent Results
-          </div>
-          <div id="recentList"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════ CLASS RESULTS ═══════════════ -->
-  <div class="page" id="page-class">
-    <div style="max-width:1100px;margin:0 auto;">
-      <div class="breadcrumb" id="classBreadcrumb"></div>
-      <div class="page-header">
-        <h1 class="page-title" id="classPageTitle"></h1>
-        <p class="page-subtitle" id="classPageSub"></p>
-      </div>
-      <div id="classNextExamBanner"></div>
-      <div class="exams-grid" id="examsGrid"></div>
-    </div>
-  </div>
-
-  <!-- ═══════════════ EXAM RESULTS ═══════════════ -->
-  <div class="page" id="page-exam">
-    <div style="max-width:1100px;margin:0 auto;">
-      <div class="breadcrumb" id="examBreadcrumb"></div>
-      <div class="page-header">
-        <h1 class="page-title" id="examPageTitle"></h1>
-        <p class="page-subtitle" id="examPageSub"></p>
-      </div>
-      <div class="results-meta" id="resultsMeta"></div>
-      <div id="examNextBanner"></div>
-      <div class="results-table-wrap" id="resultsTableWrap"></div>
-    </div>
-  </div>
-
-  <!-- ═══════════════ RECAPS ═══════════════ -->
-  <div class="page" id="page-recaps">
-    <div style="max-width:1100px;margin:0 auto;">
-      <div class="breadcrumb" id="recapBreadcrumb"></div>
-      <div class="page-header">
-        <h1 class="page-title">Result Recaps</h1>
-        <p class="page-subtitle">View consolidated performance across weeks, months, and years</p>
-      </div>
-      <div class="recap-tabs">
-        <button class="recap-tab active" onclick="setRecapPeriod('weekly')">Weekly</button>
-        <button class="recap-tab" onclick="setRecapPeriod('monthly')">Monthly</button>
-        <button class="recap-tab" onclick="setRecapPeriod('yearly')">Yearly</button>
-      </div>
-      <div class="recap-filters" id="recapFilters"></div>
-      <div class="recap-summary-cards" id="recapSummaryCards"></div>
-      <div id="recapTableContainer"></div>
-    </div>
-  </div>
-
-  <!-- ═══════════════ ADMIN PANEL ═══════════════ -->
-  <div class="page" id="page-admin">
-    <div class="admin-layout">
-      <div class="admin-sidebar">
-        <div class="admin-sidebar-title">Admin Panel</div>
-        <div class="admin-nav-item active" data-section="dashboard" onclick="setAdminSection('dashboard')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          Dashboard
-        </div>
-        <div class="admin-nav-item" data-section="classes" onclick="setAdminSection('classes')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          Classes
-        </div>
-        <div class="admin-nav-item" data-section="exams" onclick="setAdminSection('exams')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Exams &amp; Results
-        </div>
-        <div class="admin-nav-item" data-section="students" onclick="setAdminSection('students')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
-          Students
-        </div>
-        <div class="admin-nav-item" data-section="schedule" onclick="setAdminSection('schedule')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Next Exam Schedule
-        </div>
-        <div class="admin-nav-item" data-section="recapAdmin" onclick="setAdminSection('recapAdmin')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Recaps
-        </div>
-      </div>
-      <div class="admin-content">
-        <!-- Dashboard -->
-        <div class="admin-section active" id="section-dashboard">
-          <div class="admin-section-title">Dashboard</div>
-          <div class="admin-section-sub">Overview of BioChe exam portal</div>
-          <div class="admin-stat-grid" id="adminStatGrid"></div>
-          <div class="form-section">
-            <div class="form-section-title">Quick Actions</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn btn-secondary" onclick="setAdminSection('exams')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Add Exam
-              </button>
-              <button class="btn btn-secondary" onclick="setAdminSection('students')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Add Student
-              </button>
-              <button class="btn btn-secondary" onclick="setAdminSection('schedule')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Schedule Exam Date
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Classes -->
-        <div class="admin-section" id="section-classes">
-          <div class="admin-section-title">Manage Classes</div>
-          <div class="admin-section-sub">Add or remove class categories</div>
-          <div class="form-section">
-            <div class="form-section-title">Add New Class</div>
-            <div class="form-grid" style="align-items:end;">
-              <div class="form-group">
-                <label class="form-label">Class Name</label>
-                <input class="neu-input" id="newClassName" placeholder="e.g. Class 11" />
-              </div>
-              <div>
-                <button class="btn btn-primary" onclick="addClass()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Add Class
-                </button>
-              </div>
-            </div>
-          </div>
-          <div id="classesList"></div>
-        </div>
-
-        <!-- Exams -->
-        <div class="admin-section" id="section-exams">
-          <div class="admin-section-title">Exams &amp; Results</div>
-          <div class="admin-section-sub">Create exams and manage student results</div>
-          <div class="form-section">
-            <div class="form-section-title">Create New Exam</div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Select Class</label>
-                <select class="neu-input" id="examClassSelect"></select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Exam Title</label>
-                <input class="neu-input" id="examTitle" placeholder="e.g. Mid-Term 2025" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Exam Date</label>
-                <input class="neu-input" type="date" id="examDate" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Total Score</label>
-                <input class="neu-input" type="number" id="examTotal" placeholder="100" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Highest Score (Achieved)</label>
-                <input class="neu-input" type="number" id="examHighest" placeholder="0" />
-              </div>
-              <div class="form-group" style="align-self:end;">
-                <button class="btn btn-primary" onclick="addExam()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Create Exam
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="form-section">
-            <div class="form-section-title">View &amp; Manage Exam Results</div>
-            <div class="form-grid" style="margin-bottom:16px;">
-              <div class="form-group">
-                <label class="form-label">Filter by Class</label>
-                <select class="neu-input" id="examFilterClass" onchange="renderAdminExamsList()"></select>
-              </div>
-            </div>
-            <div id="adminExamsList"></div>
-          </div>
-        </div>
-
-        <!-- Students -->
-        <div class="admin-section" id="section-students">
-          <div class="admin-section-title">Manage Students</div>
-          <div class="admin-section-sub">Add or remove students and their marks</div>
-          <div class="form-section">
-            <div class="form-section-title">Add Student to Exam</div>
-            <div class="form-grid three">
-              <div class="form-group">
-                <label class="form-label">Select Class</label>
-                <select class="neu-input" id="stuClassSelect" onchange="updateStuExamSelect()"></select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Select Exam</label>
-                <select class="neu-input" id="stuExamSelect"></select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Student Name</label>
-                <input class="neu-input" id="stuName" placeholder="Full name" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Obtained Marks</label>
-                <input class="neu-input" type="number" id="stuMarks" placeholder="0" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Guardian Mobile (Private)</label>
-                <input class="neu-input" id="stuGuardian" placeholder="01XXXXXXXXX" />
-              </div>
-              <div class="form-group" style="align-self:end;">
-                <button class="btn btn-primary" onclick="addStudent()">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Add Student
-                </button>
-              </div>
-            </div>
-          </div>
-          <div class="form-section">
-            <div class="form-section-title">Student List</div>
-            <div class="form-grid" style="margin-bottom:16px;">
-              <div class="form-group">
-                <label class="form-label">Filter by Class</label>
-                <select class="neu-input" id="stuFilterClass" onchange="updateStuFilterExam()"></select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Filter by Exam</label>
-                <select class="neu-input" id="stuFilterExam" onchange="renderAdminStudentsList()"></select>
-              </div>
-            </div>
-            <div id="adminStudentsList"></div>
-          </div>
-        </div>
-
-        <!-- Schedule -->
-        <div class="admin-section" id="section-schedule">
-          <div class="admin-section-title">Next Exam Schedule</div>
-          <div class="admin-section-sub">Set and publish upcoming exam dates for students to see</div>
-          <div class="form-section">
-            <div class="form-section-title">Publish Next Exam Date</div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label class="form-label">Select Class</label>
-                <select class="neu-input" id="schedClassSelect" onchange="updateSchedExamSelect()"></select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Reference Exam (Optional)</label>
-                <select class="neu-input" id="schedExamSelect"></select>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Next Exam Title</label>
-                <input class="neu-input" id="schedTitle" placeholder="e.g. Final Exam 2025" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Exam Date</label>
-                <input class="neu-input" type="date" id="schedDate" />
-              </div>
-            </div>
-            <div style="margin-top:14px;">
-              <button class="btn btn-primary" onclick="saveSchedule()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                Publish Schedule
-              </button>
-            </div>
-          </div>
-          <div id="scheduleList"></div>
-        </div>
-
-        <!-- Recap Admin -->
-        <div class="admin-section" id="section-recapAdmin">
-          <div class="admin-section-title">Recap Overview</div>
-          <div class="admin-section-sub">See all consolidated results</div>
-          <div style="display:flex;gap:10px;margin-bottom:20px;">
-            <button class="btn btn-secondary" onclick="showPage('recaps')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              View Full Recaps
-            </button>
-          </div>
-          <div id="adminRecapOverview"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="page active" id="page-home">
+<div class="hero"><div class="hero-tag">Exam Results Portal</div><h1 class="hero-title">Bio<span>Che</span> Results</h1><p class="hero-sub">Check your exam results, track your progress, and stay updated with upcoming examinations.</p><div class="hero-stats" id="heroStats"></div></div>
+<div style="max-width:1100px;margin:0 auto;padding:0 4px">
+<div class="section-label">Select Your Class</div>
+<div class="classes-grid" id="classesGrid"></div>
+<div class="two-col">
+<div class="section-card"><div class="section-card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Exams</div><div id="upcomingList"></div></div>
+<div class="section-card"><div class="section-card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Recent Results</div><div id="recentList"></div></div>
+</div></div>
 </div>
 
-<!-- Login Modal -->
-<div class="modal-overlay" id="loginModal">
-  <div class="modal">
-    <div class="login-logo">
-      <div class="login-logo-icon">BC</div>
-      <div class="login-title">Admin Access</div>
-      <div class="login-sub">Sign in to manage exam results</div>
-    </div>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Username</label>
-      <input class="neu-input" type="text" id="loginUser" placeholder="admin username" onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="neu-input" type="password" id="loginPass" placeholder="password" onkeydown="if(event.key==='Enter')doLogin()"/>
-    </div>
-    <div class="error-msg" id="loginError">Invalid username or password.</div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('loginModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="doLogin()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Sign In
-      </button>
-    </div>
-  </div>
+<div class="page" id="page-class">
+<div style="max-width:1100px;margin:0 auto"><div class="breadcrumb" id="classBreadcrumb"></div><div class="page-header"><h1 class="page-title" id="classPageTitle"></h1><p class="page-subtitle" id="classPageSub"></p></div><div id="classNextExamBanner"></div><div class="exams-grid" id="examsGrid"></div></div>
 </div>
 
-<!-- Edit Student Modal -->
-<div class="modal-overlay" id="editStuModal">
-  <div class="modal">
-    <div class="modal-title">Edit Student</div>
-    <div class="modal-sub">Update student information and marks</div>
-    <input type="hidden" id="editStuClassId"/>
-    <input type="hidden" id="editStuExamId"/>
-    <input type="hidden" id="editStuId"/>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Student Name</label>
-      <input class="neu-input" id="editStuName" />
-    </div>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Obtained Marks</label>
-      <input class="neu-input" type="number" id="editStuMarks" />
-    </div>
-    <div class="form-group">
-      <label class="form-label">Guardian Mobile (Private)</label>
-      <input class="neu-input" id="editStuGuardian" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('editStuModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditStudent()">Save Changes</button>
-    </div>
-  </div>
+<div class="page" id="page-exam">
+<div style="max-width:1100px;margin:0 auto"><div class="breadcrumb" id="examBreadcrumb"></div><div class="page-header"><h1 class="page-title" id="examPageTitle"></h1><p class="page-subtitle" id="examPageSub"></p></div><div class="results-meta" id="resultsMeta"></div><div class="results-table-wrap" id="resultsTableWrap"></div></div>
 </div>
 
-<!-- Edit Exam Modal -->
-<div class="modal-overlay" id="editExamModal">
-  <div class="modal">
-    <div class="modal-title">Edit Exam</div>
-    <div class="modal-sub">Update exam details</div>
-    <input type="hidden" id="editExamClassId"/>
-    <input type="hidden" id="editExamId"/>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Exam Title</label>
-      <input class="neu-input" id="editExamTitle"/>
-    </div>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Exam Date</label>
-      <input class="neu-input" type="date" id="editExamDate"/>
-    </div>
-    <div class="form-group" style="margin-bottom:12px;">
-      <label class="form-label">Total Score</label>
-      <input class="neu-input" type="number" id="editExamTotal"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Highest Score Achieved</label>
-      <input class="neu-input" type="number" id="editExamHighest"/>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('editExamModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveEditExam()">Save Changes</button>
-    </div>
-  </div>
+<div class="page" id="page-recaps">
+<div style="max-width:1100px;margin:0 auto"><div class="breadcrumb"><span onclick="goHome()">Home</span><span class="sep">›</span><span>Recaps</span></div><div class="page-header"><h1 class="page-title">Result Recaps</h1><p class="page-subtitle">View consolidated performance across weeks, months, and years</p></div>
+<div class="recap-tabs"><button class="recap-tab active" data-p="weekly" onclick="setRecapPeriod('weekly',this)">Weekly</button><button class="recap-tab" data-p="monthly" onclick="setRecapPeriod('monthly',this)">Monthly</button><button class="recap-tab" data-p="yearly" onclick="setRecapPeriod('yearly',this)">Yearly</button></div>
+<div class="recap-filters" id="recapFilters"></div><div class="recap-summary-cards" id="recapSummaryCards"></div><div id="recapTableContainer"></div></div>
 </div>
 
-<!-- Toast -->
+<div class="page" id="page-admin">
+<div class="admin-layout">
+<div class="admin-sidebar">
+<div class="admin-sidebar-title">Admin Panel</div>
+<div class="admin-nav-item active" data-section="dashboard" onclick="setAdminSection('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</div>
+<div class="admin-nav-item" data-section="classes" onclick="setAdminSection('classes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Classes</div>
+<div class="admin-nav-item" data-section="exams" onclick="setAdminSection('exams')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Exams</div>
+<div class="admin-nav-item" data-section="students" onclick="setAdminSection('students')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>Students</div>
+<div class="admin-nav-item" data-section="schedule" onclick="setAdminSection('schedule')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Schedule</div>
+<div class="admin-nav-item" data-section="recapAdmin" onclick="setAdminSection('recapAdmin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Recaps</div>
+</div>
+<div class="admin-content">
+<div class="admin-section active" id="section-dashboard">
+<div class="admin-section-title">Dashboard</div><div class="admin-section-sub">Overview of BioChe exam portal</div>
+<div class="admin-stat-grid" id="adminStatGrid"></div>
+<div class="cloud-banner" id="cloudBanner"><div class="cloud-banner-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Publish Results to Web</div><div class="cloud-banner-desc">Your data is only in this browser. Publish it online so students can see results from any device. After publishing, any changes you make will auto-sync.</div><button class="btn btn-primary" id="publishBtn" onclick="publishToCloud()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Publish and Get Share Link</button></div>
+<div class="share-section" id="shareSection" style="display:none"><div class="share-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Results are Live</div><div class="share-link-wrap"><input class="share-link-input" id="shareLinkInput" readonly/><button class="btn btn-secondary btn-sm" onclick="copyShareLink()">Copy Link</button></div><div style="margin-top:8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><span style="font-size:11px;color:var(--dim)">Changes auto-sync. Students see updates within ~15 seconds.</span><button class="btn btn-danger btn-sm" onclick="disconnectCloud()" style="padding:4px 10px;font-size:11px">Disconnect</button></div></div>
+<div class="form-section"><div class="form-section-title">Quick Actions</div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-secondary" onclick="setAdminSection('exams')">Add Exam</button><button class="btn btn-secondary" onclick="setAdminSection('students')">Add Student</button><button class="btn btn-secondary" onclick="setAdminSection('schedule')">Schedule Exam</button></div></div>
+</div>
+<div class="admin-section" id="section-classes"><div class="admin-section-title">Manage Classes</div><div class="admin-section-sub">Add or remove class categories</div><div class="form-section"><div class="form-section-title">Add New Class</div><div class="form-grid" style="align-items:end"><div class="form-group"><label class="form-label">Class Name</label><input class="neu-input" id="newClassName" placeholder="e.g. Class 11"/></div><div><button class="btn btn-primary" onclick="addClass()">Add Class</button></div></div></div><div id="classesList"></div></div>
+<div class="admin-section" id="section-exams"><div class="admin-section-title">Exams and Results</div><div class="admin-section-sub">Create exams and manage student results</div><div class="form-section"><div class="form-section-title">Create New Exam</div><div class="form-grid"><div class="form-group"><label class="form-label">Select Class</label><select class="neu-input" id="examClassSelect"></select></div><div class="form-group"><label class="form-label">Exam Title</label><input class="neu-input" id="examTitle" placeholder="e.g. Mid-Term 2025"/></div><div class="form-group"><label class="form-label">Exam Date</label><input class="neu-input" type="date" id="examDate"/></div><div class="form-group"><label class="form-label">Total Score</label><input class="neu-input" type="number" id="examTotal" placeholder="100"/></div><div class="form-group"><label class="form-label">Highest Score</label><input class="neu-input" type="number" id="examHighest" placeholder="0"/></div><div class="form-group" style="align-self:end"><button class="btn btn-primary" onclick="addExam()">Create Exam</button></div></div></div><div class="form-section"><div class="form-section-title">Manage Exams</div><div class="form-grid" style="margin-bottom:16px"><div class="form-group"><label class="form-label">Filter by Class</label><select class="neu-input" id="examFilterClass" onchange="renderAdminExamsList()"></select></div></div><div id="adminExamsList"></div></div></div>
+<div class="admin-section" id="section-students"><div class="admin-section-title">Manage Students</div><div class="admin-section-sub">Add or remove students and their marks</div><div class="form-section"><div class="form-section-title">Add Student to Exam</div><div class="form-grid three"><div class="form-group"><label class="form-label">Select Class</label><select class="neu-input" id="stuClassSelect" onchange="updateStuExamSelect()"></select></div><div class="form-group"><label class="form-label">Select Exam</label><select class="neu-input" id="stuExamSelect"></select></div><div class="form-group"><label class="form-label">Student Name</label><input class="neu-input" id="stuName" placeholder="Full name"/></div><div class="form-group"><label class="form-label">Obtained Marks</label><input class="neu-input" type="number" id="stuMarks" placeholder="0"/></div><div class="form-group"><label class="form-label">Guardian Mobile</label><input class="neu-input" id="stuGuardian" placeholder="01XXXXXXXXX"/></div><div class="form-group" style="align-self:end"><button class="btn btn-primary" onclick="addStudent()">Add Student</button></div></div></div><div class="form-section"><div class="form-section-title">Student List</div><div class="form-grid" style="margin-bottom:16px"><div class="form-group"><label class="form-label">Filter by Class</label><select class="neu-input" id="stuFilterClass" onchange="updateStuFilterExam()"></select></div><div class="form-group"><label class="form-label">Filter by Exam</label><select class="neu-input" id="stuFilterExam" onchange="renderAdminStudentsList()"></select></div></div><div id="adminStudentsList"></div></div></div>
+<div class="admin-section" id="section-schedule"><div class="admin-section-title">Next Exam Schedule</div><div class="admin-section-sub">Set upcoming exam dates for students</div><div class="form-section"><div class="form-section-title">Publish Next Exam Date</div><div class="form-grid"><div class="form-group"><label class="form-label">Select Class</label><select class="neu-input" id="schedClassSelect" onchange="updateSchedExamSelect()"></select></div><div class="form-group"><label class="form-label">Reference Exam</label><select class="neu-input" id="schedExamSelect"></select></div><div class="form-group"><label class="form-label">Next Exam Title</label><input class="neu-input" id="schedTitle" placeholder="e.g. Final Exam 2025"/></div><div class="form-group"><label class="form-label">Exam Date</label><input class="neu-input" type="date" id="schedDate"/></div></div><div style="margin-top:14px"><button class="btn btn-primary" onclick="saveSchedule()">Publish Schedule</button></div></div><div id="scheduleList"></div></div>
+<div class="admin-section" id="section-recapAdmin"><div class="admin-section-title">Recap Overview</div><div class="admin-section-sub">See all consolidated results</div><div style="margin-bottom:20px"><button class="btn btn-secondary" onclick="showPage('recaps')">View Full Recaps</button></div><div id="adminRecapOverview"></div></div>
+</div></div>
+</div>
+
+<div class="modal-overlay" id="loginModal"><div class="modal"><div class="login-logo"><div class="login-logo-icon">BC</div><div class="login-title">Admin Access</div><div class="login-sub">Sign in to manage exam results</div></div><div class="form-group" style="margin-bottom:12px"><label class="form-label">Username</label><input class="neu-input" type="text" id="loginUser" placeholder="admin username" onkeydown="if(event.key==='Enter')doLogin()"/></div><div class="form-group"><label class="form-label">Password</label><input class="neu-input" type="password" id="loginPass" placeholder="password" onkeydown="if(event.key==='Enter')doLogin()"/></div><div class="error-msg" id="loginError">Invalid username or password.</div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('loginModal')">Cancel</button><button class="btn btn-primary" onclick="doLogin()">Sign In</button></div></div></div>
+<div class="modal-overlay" id="editStuModal"><div class="modal"><div class="modal-title">Edit Student</div><div class="modal-sub">Update student information</div><input type="hidden" id="editStuClassId"/><input type="hidden" id="editStuExamId"/><input type="hidden" id="editStuId"/><div class="form-group" style="margin-bottom:12px"><label class="form-label">Student Name</label><input class="neu-input" id="editStuName"/></div><div class="form-group" style="margin-bottom:12px"><label class="form-label">Obtained Marks</label><input class="neu-input" type="number" id="editStuMarks"/></div><div class="form-group"><label class="form-label">Guardian Mobile</label><input class="neu-input" id="editStuGuardian"/></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('editStuModal')">Cancel</button><button class="btn btn-primary" onclick="saveEditStudent()">Save</button></div></div></div>
+<div class="modal-overlay" id="editExamModal"><div class="modal"><div class="modal-title">Edit Exam</div><div class="modal-sub">Update exam details</div><input type="hidden" id="editExamClassId"/><input type="hidden" id="editExamId"/><div class="form-group" style="margin-bottom:12px"><label class="form-label">Exam Title</label><input class="neu-input" id="editExamTitle"/></div><div class="form-group" style="margin-bottom:12px"><label class="form-label">Exam Date</label><input class="neu-input" type="date" id="editExamDate"/></div><div class="form-group" style="margin-bottom:12px"><label class="form-label">Total Score</label><input class="neu-input" type="number" id="editExamTotal"/></div><div class="form-group"><label class="form-label">Highest Score</label><input class="neu-input" type="number" id="editExamHighest"/></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('editExamModal')">Cancel</button><button class="btn btn-primary" onclick="saveEditExam()">Save</button></div></div></div>
 <div class="toast" id="toast"></div>
+</div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-//  CONSTANTS & STATE
-// ═══════════════════════════════════════════════════════════
-const ADMIN_USER = 'admin@bioche5090';
-const ADMIN_PASS = 'admin@biochepass';
-const STORE_KEY  = 'bioche_data_v3';
+/* ═══════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════ */
+var ADMIN_USER = 'admin@bioche5090';
+var ADMIN_PASS = 'admin@biochepass';
+var STORE_KEY  = 'bioche_data_v3';
+var CLOUD_API  = 'https://jsonblob.com/api/jsonBlob';
 
-let isAdmin    = false;
-let currentPage = 'home';
-let currentClassId = null;
-let currentExamId  = null;
-let recapPeriod    = 'weekly';
-let backStack      = [];
+/* ═══════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════ */
+var isAdmin = false;
+var currentPage = 'home';
+var currentClassId = null;
+var currentExamId = null;
+var recapPeriod = 'weekly';
+var cloudBlobId = null;
+var isCloudMode = false;
+var syncTimer = null;
+var pollTimer = null;
 
-const DEFAULT_CLASSES = [
+var DEFAULT_CLASSES = [
   {id:'c1',name:'Class 8',icon:'8️⃣',exams:[]},
   {id:'c2',name:'Class 9',icon:'9️⃣',exams:[]},
   {id:'c3',name:'Class 10',icon:'🔟',exams:[]},
   {id:'c4',name:'SSC Final Prep',icon:'📋',exams:[]},
   {id:'c5',name:'HSC First Year',icon:'📗',exams:[]},
   {id:'c6',name:'HSC Second Year',icon:'📘',exams:[]},
-  {id:'c7',name:'Admission Programs',icon:'🎓',exams:[]},
+  {id:'c7',name:'Admission Programs',icon:'🎓',exams:[]}
 ];
 
-// ═══════════════════════════════════════════════════════════
-//  DATA LAYER
-// ═══════════════════════════════════════════════════════════
-const SUPABASE_URL = "https://xlfznmhnmcselglnrrnu.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZnpubWhubWNzZWxnbG5ycm51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2OTc1NTcsImV4cCI6MjA5MjI3MzU1N30.dPiA5hVFSt5HhGHOnCIAg_KE1ankB7JOGFlUHQ2rCyA";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let appCache = {classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]};
-let saveTimer = null;
-let lastSavedJson = '';
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════════ */
+function uid() { return '_' + Math.random().toString(36).substr(2, 9); }
 
-function normalizeData(d){
-  const next = d && typeof d === 'object' ? d : {};
-  if(!Array.isArray(next.classes) || !next.classes.length) next.classes = JSON.parse(JSON.stringify(DEFAULT_CLASSES));
-  if(!Array.isArray(next.schedules)) next.schedules = [];
-  return next;
+function formatDate(d) {
+  if (!d) return '—';
+  try { return new Date(d).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}); }
+  catch(e) { return d; }
 }
 
-function readLegacyLocalData(){
-  try{
-    const raw = localStorage.getItem(STORE_KEY);
-    if(raw) return normalizeData(JSON.parse(raw));
-  }catch(e){}
-  return null;
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function persistLegacyLocalCopy(d){
-  try{ localStorage.setItem(STORE_KEY, JSON.stringify(d)); }catch(e){}
+function getGrade(p) {
+  if (p >= 90) return 'A+';
+  if (p >= 80) return 'A';
+  if (p >= 70) return 'B';
+  if (p >= 60) return 'C';
+  if (p >= 50) return 'D';
+  return 'F';
 }
 
-function getData(){
-  return appCache;
+function gradeClass(g) {
+  if (g === 'A+') return 'grade-Ap';
+  return 'grade-' + g;
 }
 
-async function writeCloudData(d){
-  const normalized = normalizeData(d);
-  const payloadJson = JSON.stringify(normalized);
-  appCache = normalized;
-  persistLegacyLocalCopy(normalized);
-  lastSavedJson = payloadJson;
-
-  const { error } = await supabaseClient
-    .from('app_state')
-    .upsert({ id: 'singleton', data: normalized, updated_at: new Date().toISOString() });
-
-  if(error) throw error;
+/* ═══════════════════════════════════════════════════════
+   DATA LAYER — localStorage first, cloud in background
+   ═══════════════════════════════════════════════════════ */
+function getData() {
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { classes: JSON.parse(JSON.stringify(DEFAULT_CLASSES)), schedules: [] };
 }
 
-function saveData(d){
-  const normalized = normalizeData(d);
-  appCache = normalized;
-  persistLegacyLocalCopy(normalized);
-
-  if(saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    try{
-      await writeCloudData(normalized);
-    }catch(error){
-      console.error('Cloud save failed', error);
-      try{ showToast('Save failed. Please try again.','error'); }catch(e){}
-    }
-  }, 180);
-}
-function uid(){ return '_'+Math.random().toString(36).substr(2,9); }
-
-function rerenderCurrentPage(){
-  try{
-    if(currentPage==='home') renderHome();
-    else if(currentPage==='class') renderClassPage(currentClassId);
-    else if(currentPage==='exam') renderExamPage(currentClassId, currentExamId);
-    else if(currentPage==='recaps') renderRecapsPage();
-    else if(currentPage==='admin') renderAdminPanel();
-    else renderHome();
-  }catch(error){
-    console.error('Realtime rerender failed', error);
+function saveData(d, skipCloud) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(d));
+  if (isCloudMode && cloudBlobId && !skipCloud) {
+    debounceSync();
   }
 }
 
-async function bootstrapCloudData(){
-  const legacy = readLegacyLocalData();
+/* ═══════════════════════════════════════════════════════
+   CLOUD SYNC — non-blocking, never freezes the page
+   ═══════════════════════════════════════════════════════ */
+function initCloud() {
+  var h = window.location.hash;
+  if (h.indexOf('#data=') === 0) {
+    cloudBlobId = h.substring(6);
+    localStorage.setItem('bioche_blob_id', cloudBlobId);
+    isCloudMode = true;
+  } else {
+    cloudBlobId = localStorage.getItem('bioche_blob_id');
+    if (cloudBlobId) isCloudMode = true;
+  }
+  updateSyncUI();
+  return isCloudMode;
+}
 
-  try{
-    const { data, error } = await supabaseClient
-      .from('app_state')
-      .select('data')
-      .eq('id', 'singleton')
-      .maybeSingle();
+function updateSyncUI() {
+  var si = document.getElementById('syncInd');
+  var rb = document.getElementById('refreshBtn');
+  if (isCloudMode && !isAdmin) {
+    si.style.display = 'flex';
+    rb.style.display = 'flex';
+    setSyncStatus('live', 'Live');
+  } else {
+    si.style.display = 'none';
+    rb.style.display = 'none';
+  }
+}
 
-    if(error) throw error;
+function setSyncStatus(s, t) {
+  var el = document.getElementById('syncInd');
+  el.className = 'sync-ind ' + s;
+  document.getElementById('syncText').textContent = t || '';
+}
 
-    const cloudData = data && data.data ? normalizeData(data.data) : null;
-    const cloudIsEmpty = !cloudData || !Array.isArray(cloudData.classes) || cloudData.classes.every(c => !Array.isArray(c.exams) || c.exams.length === 0) && (!Array.isArray(cloudData.schedules) || cloudData.schedules.length === 0);
+function updateCloudAdminUI() {
+  var b = document.getElementById('cloudBanner');
+  var s = document.getElementById('shareSection');
+  if (cloudBlobId && isCloudMode) {
+    b.style.display = 'none';
+    s.style.display = 'block';
+    document.getElementById('shareLinkInput').value = getShareUrl();
+  } else {
+    b.style.display = 'block';
+    s.style.display = 'none';
+  }
+}
 
-    if(cloudIsEmpty && legacy) {
-      await writeCloudData(legacy);
-      appCache = legacy;
+function getShareUrl() {
+  return window.location.origin + window.location.pathname + '#data=' + cloudBlobId;
+}
+
+function debounceSync() {
+  clearTimeout(syncTimer);
+  setSyncStatus('syncing', 'Syncing...');
+  syncTimer = setTimeout(function() { syncToCloud(); }, 2000);
+}
+
+function syncToCloud() {
+  if (!cloudBlobId) return;
+  fetch(CLOUD_API + '/' + cloudBlobId, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+    body: JSON.stringify(getData())
+  }).then(function(r) {
+    if (r.ok) setSyncStatus('live', 'Live');
+    else setSyncStatus('err', 'Sync fail');
+  }).catch(function() {
+    setSyncStatus('err', 'Offline');
+  });
+}
+
+/* Fetch cloud data in background — NEVER blocks the page */
+function backgroundCloudLoad() {
+  if (!cloudBlobId) return;
+  setSyncStatus('syncing', 'Loading...');
+  fetch(CLOUD_API + '/' + cloudBlobId, {
+    headers: {'Accept': 'application/json'}
+  }).then(function(r) {
+    if (!r.ok) {
+      if (r.status === 404) {
+        localStorage.removeItem('bioche_blob_id');
+        cloudBlobId = null;
+        isCloudMode = false;
+      }
+      setSyncStatus('err', 'Error');
       return;
     }
+    return r.json();
+  }).then(function(data) {
+    if (!data) return;
+    if (!Array.isArray(data.classes)) return;
+    saveData(data, true);
+    setSyncStatus('live', 'Live');
+    /* Re-render current page to show new data */
+    showPage(currentPage, {classId: currentClassId, examId: currentExamId});
+  }).catch(function() {
+    setSyncStatus('err', 'Offline');
+  });
+}
 
-    if(cloudData) {
-      appCache = cloudData;
-      persistLegacyLocalCopy(cloudData);
-      lastSavedJson = JSON.stringify(cloudData);
-      return;
-    }
-  }catch(error){
-    console.error('Cloud load failed', error);
+function publishToCloud() {
+  var btn = document.getElementById('publishBtn');
+  btn.disabled = true;
+  btn.textContent = 'Publishing...';
+
+  var data = getData();
+  var promise;
+
+  if (cloudBlobId) {
+    promise = fetch(CLOUD_API + '/' + cloudBlobId, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(data)
+    });
+  } else {
+    promise = fetch(CLOUD_API, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify(data)
+    }).then(function(r) {
+      if (r.ok) {
+        var loc = r.headers.get('Location') || r.headers.get('location');
+        if (loc) {
+          cloudBlobId = loc.split('/').pop();
+          localStorage.setItem('bioche_blob_id', cloudBlobId);
+          isCloudMode = true;
+          history.replaceState(null, '', '#data=' + cloudBlobId);
+        }
+      }
+      return r;
+    });
   }
 
-  appCache = normalizeData(legacy || {classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]});
-  persistLegacyLocalCopy(appCache);
+  promise.then(function(r) {
+    if (r.ok) {
+      setSyncStatus('live', 'Live');
+      updateCloudAdminUI();
+      updateSyncUI();
+      showToast('Published! Copy the share link and send to students.', 'success');
+    } else {
+      showToast('Publish failed. Try again.', 'error');
+    }
+  }).catch(function() {
+    showToast('Network error. Check connection.', 'error');
+  }).then(function() {
+    btn.disabled = false;
+    btn.textContent = 'Publish and Get Share Link';
+  });
 }
 
-function subscribeToCloudUpdates(){
-  supabaseClient
-    .channel('bioche-app-state')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_state' }, payload => {
-      const nextData = payload && payload.new ? payload.new.data : null;
-      if(!nextData) return;
-      const normalized = normalizeData(nextData);
-      const nextJson = JSON.stringify(normalized);
-      if(nextJson === lastSavedJson) return;
-      appCache = normalized;
-      persistLegacyLocalCopy(normalized);
-      lastSavedJson = nextJson;
-      rerenderCurrentPage();
-    })
-    .subscribe();
+function copyShareLink() {
+  var url = getShareUrl();
+  var inp = document.getElementById('shareLinkInput');
+  inp.value = url;
+  inp.select();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(
+      function() { showToast('Link copied!', 'success'); },
+      function() { try { document.execCommand('copy'); showToast('Link copied!', 'success'); } catch(e) { showToast('Select the link and copy manually.', 'error'); } }
+    );
+  } else {
+    try { document.execCommand('copy'); showToast('Link copied!', 'success'); } catch(e) { showToast('Select the link and copy manually.', 'error'); }
+  }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  AUTH
-// ═══════════════════════════════════════════════════════════
-function doLogin(){
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value;
-  const err = document.getElementById('loginError');
-  if(u===ADMIN_USER && p===ADMIN_PASS){
+function disconnectCloud() {
+  if (!confirm('Disconnect from cloud?\nStudents using the old link will no longer see updates.')) return;
+  cloudBlobId = null;
+  isCloudMode = false;
+  localStorage.removeItem('bioche_blob_id');
+  history.replaceState(null, '', window.location.pathname);
+  clearInterval(pollTimer);
+  updateSyncUI();
+  updateCloudAdminUI();
+  showToast('Disconnected.', '');
+}
+
+function manualRefresh() {
+  var btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  backgroundCloudLoad();
+  setTimeout(function() { btn.classList.remove('spinning'); }, 2000);
+}
+
+function startPolling() {
+  clearInterval(pollTimer);
+  if (!isCloudMode || isAdmin) return;
+  pollTimer = setInterval(function() {
+    if (!cloudBlobId) return;
+    fetch(CLOUD_API + '/' + cloudBlobId, {headers: {'Accept': 'application/json'}})
+    .then(function(r) { return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !Array.isArray(data.classes)) return;
+      var localStr = localStorage.getItem(STORE_KEY);
+      if (JSON.stringify(data) !== localStr) {
+        saveData(data, true);
+        showPage(currentPage, {classId: currentClassId, examId: currentExamId});
+        setSyncStatus('live', 'Live');
+      }
+    }).catch(function() {});
+  }, 15000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════════════════ */
+function doLogin() {
+  var u = document.getElementById('loginUser').value.trim();
+  var p = document.getElementById('loginPass').value;
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
     isAdmin = true;
-    err.classList.remove('show');
+    document.getElementById('loginError').classList.remove('show');
     closeModal('loginModal');
     updateAdminUI();
+    clearInterval(pollTimer);
     showPage('admin');
-    showToast('Welcome back, Admin!','success');
+    showToast('Welcome back, Admin!', 'success');
   } else {
-    err.classList.add('show');
-    document.getElementById('loginPass').value='';
+    document.getElementById('loginError').classList.add('show');
+    document.getElementById('loginPass').value = '';
   }
 }
-function logout(){
+
+function logout() {
   isAdmin = false;
   updateAdminUI();
   goHome();
-  showToast('Logged out','');
+  startPolling();
+  showToast('Logged out.', '');
 }
-function handleAdminBtnClick(){
-  if(isAdmin){ logout(); }
-  else { document.getElementById('loginUser').value=''; document.getElementById('loginPass').value=''; document.getElementById('loginError').classList.remove('show'); openModal('loginModal'); }
-}
-function updateAdminUI(){
-  const badge = document.getElementById('adminStatusBadge');
-  const btn   = document.getElementById('adminBtn');
-  const btnTxt= document.getElementById('adminBtnText');
-  if(isAdmin){
-    badge.innerHTML='<div class="admin-badge">Admin Active</div>';
-    btn.style.borderColor='rgba(248,113,113,0.3)';
-    btn.style.color='var(--red)';
-    btnTxt.textContent='Logout';
-  } else {
-    badge.innerHTML='';
-    btn.style.borderColor='';
-    btn.style.color='';
-    btnTxt.textContent='Admin';
+
+function handleAdminBtnClick() {
+  if (isAdmin) { logout(); }
+  else {
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').classList.remove('show');
+    openModal('loginModal');
   }
 }
 
-// ═══════════════════════════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════════════════════════
-function showPage(name, params={}){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
+function updateAdminUI() {
+  var badge = document.getElementById('adminStatusBadge');
+  var btn = document.getElementById('adminBtn');
+  var txt = document.getElementById('adminBtnText');
+  if (isAdmin) {
+    badge.innerHTML = '<div class="admin-badge">Admin Active</div>';
+    btn.style.borderColor = 'rgba(248,113,113,0.3)';
+    btn.style.color = 'var(--red)';
+    txt.textContent = 'Logout';
+  } else {
+    badge.innerHTML = '';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    txt.textContent = 'Admin';
+  }
+  updateSyncUI();
+  if (isAdmin) updateCloudAdminUI();
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════ */
+function showPage(name, params) {
+  params = params || {};
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+  document.getElementById('page-' + name).classList.add('active');
   currentPage = name;
-  const backBtn = document.getElementById('backBtn');
-  backBtn.classList.toggle('show', name!=='home' && name!=='admin');
-  window.scrollTo(0,0);
-  if(name==='home')       renderHome();
-  else if(name==='class') renderClassPage(params.classId);
-  else if(name==='exam')  renderExamPage(params.classId, params.examId);
-  else if(name==='recaps')renderRecapsPage();
-  else if(name==='admin') renderAdminPanel();
-}
-function goHome(){ backStack=[]; showPage('home'); }
-function handleBack(){
-  if(currentPage==='exam'){ showPage('class',{classId:currentClassId}); }
-  else if(currentPage==='class'){ showPage('home'); }
-  else if(currentPage==='recaps'){ showPage('home'); }
-  else { showPage('home'); }
-}
-function navToClass(classId){ currentClassId=classId; showPage('class',{classId}); }
-function navToExam(classId, examId){ currentClassId=classId; currentExamId=examId; showPage('exam',{classId,examId}); }
-function navToRecaps(){ showPage('recaps'); }
+  var bb = document.getElementById('backBtn');
+  bb.classList.toggle('show', name !== 'home' && name !== 'admin');
+  window.scrollTo(0, 0);
 
-// ═══════════════════════════════════════════════════════════
-//  GRADING
-// ═══════════════════════════════════════════════════════════
-function getGrade(pct){
-  if(pct>=90)return'A+';
-  if(pct>=80)return'A';
-  if(pct>=70)return'B';
-  if(pct>=60)return'C';
-  if(pct>=50)return'D';
-  return'F';
-}
-function getGradeClass(g){ return 'grade-'+g; }
-
-// ═══════════════════════════════════════════════════════════
-//  HOME PAGE
-// ═══════════════════════════════════════════════════════════
-function renderHome(){
-  const d = getData();
-  // Stats
-  let totalExams=0, totalStudents=0;
-  d.classes.forEach(c=>{ totalExams+=c.exams.length; c.exams.forEach(e=>{ totalStudents+=e.students.length; }); });
-  document.getElementById('heroStats').innerHTML=`
-    <div class="hero-stat"><div class="hero-stat-num">${d.classes.length}</div><div class="hero-stat-lbl">Classes</div></div>
-    <div style="width:1px;height:30px;background:var(--border);"></div>
-    <div class="hero-stat"><div class="hero-stat-num">${totalExams}</div><div class="hero-stat-lbl">Exams</div></div>
-    <div style="width:1px;height:30px;background:var(--border);"></div>
-    <div class="hero-stat"><div class="hero-stat-num">${totalStudents}</div><div class="hero-stat-lbl">Results</div></div>
-  `;
-
-  // Classes Grid
-  const icons=['📚','📖','📓','📋','📗','📘','🎓','🏫','✏️','📐'];
-  let classHTML='';
-  d.classes.forEach((c,i)=>{
-    const examCount = c.exams.length;
-    const stuCount  = c.exams.reduce((s,e)=>s+e.students.length,0);
-    const sched = (d.schedules||[]).find(s=>s.classId===c.id);
-    const nextHtml = sched ? `<div class="class-card-next">Next: <span>${sched.title} — ${formatDate(sched.date)}</span></div>` : '';
-    classHTML+=`
-      <div class="class-card" onclick="navToClass('${c.id}')">
-        <div class="class-card-icon">${c.icon||icons[i%icons.length]}</div>
-        <div class="class-card-name">${c.name}</div>
-        <div class="class-card-count">${examCount} exam${examCount!==1?'s':''} · ${stuCount} result${stuCount!==1?'s':''}</div>
-        ${nextHtml}
-        <div class="class-card-arrow">›</div>
-      </div>`;
-  });
-  if(!d.classes.length) classHTML='<div class="no-data">No classes added yet.</div>';
-  document.getElementById('classesGrid').innerHTML=classHTML;
-
-  // Upcoming exams
-  const schedules = d.schedules||[];
-  let upHTML='';
-  schedules.slice(-5).reverse().forEach(s=>{
-    const cls = d.classes.find(c=>c.id===s.classId);
-    if(!cls)return;
-    upHTML+=`<div class="upcoming-item">
-      <div><div class="upcoming-class">${cls.name}</div><div class="upcoming-exam">${s.title}</div></div>
-      <div class="upcoming-date">${formatDate(s.date)}</div>
-    </div>`;
-  });
-  document.getElementById('upcomingList').innerHTML = upHTML || '<div class="no-data">No upcoming exams scheduled</div>';
-
-  // Recent results
-  let allExams=[];
-  d.classes.forEach(c=>c.exams.forEach(e=>allExams.push({...e,className:c.name,classId:c.id})));
-  allExams.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  let recHTML='';
-  allExams.slice(0,5).forEach(e=>{
-    recHTML+=`<div class="upcoming-item" onclick="navToExam('${e.classId}','${e.id}')" style="cursor:pointer;">
-      <div><div class="upcoming-class">${e.title}</div><div class="upcoming-exam">${e.className}</div></div>
-      <div class="upcoming-date">${e.students.length} students</div>
-    </div>`;
-  });
-  document.getElementById('recentList').innerHTML = recHTML || '<div class="no-data">No results published yet</div>';
+  if (name === 'home') renderHome();
+  else if (name === 'class') renderClassPage(params.classId);
+  else if (name === 'exam') renderExamPage(params.classId, params.examId);
+  else if (name === 'recaps') renderRecapsPage();
+  else if (name === 'admin') renderAdminPanel();
 }
 
-// ═══════════════════════════════════════════════════════════
-//  CLASS PAGE
-// ═══════════════════════════════════════════════════════════
-function renderClassPage(classId){
-  const d = getData();
-  const cls = d.classes.find(c=>c.id===classId);
-  if(!cls){ goHome(); return; }
+function goHome() { showPage('home'); }
 
-  document.getElementById('classBreadcrumb').innerHTML=`
-    <span onclick="goHome()">Home</span><span class="sep">›</span><span>${cls.name}</span>`;
-  document.getElementById('classPageTitle').textContent = cls.name;
-  document.getElementById('classPageSub').textContent  = `${cls.exams.length} exam${cls.exams.length!==1?'s':''} available`;
+function handleBack() {
+  if (currentPage === 'exam') showPage('class', {classId: currentClassId});
+  else showPage('home');
+}
 
-  const sched = (d.schedules||[]).find(s=>s.classId===classId);
-  const bannerEl = document.getElementById('classNextExamBanner');
-  bannerEl.innerHTML = sched ? `<div class="next-exam-banner">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    <div><strong>Next Exam:</strong> ${sched.title} on <strong>${formatDate(sched.date)}</strong></div>
-  </div>` : '';
+function navToClass(id) { currentClassId = id; showPage('class', {classId: id}); }
+function navToExam(cid, eid) { currentClassId = cid; currentExamId = eid; showPage('exam', {classId: cid, examId: eid}); }
 
-  let html='';
-  if(!cls.exams.length){
-    html='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">No exams yet</div><div class="empty-state-sub">Check back later for results</div></div>';
-  } else {
-    const sorted=[...cls.exams].sort((a,b)=>new Date(b.date)-new Date(a.date));
-    sorted.forEach(e=>{
-      const avg = e.students.length ? Math.round(e.students.reduce((s,st)=>s+st.marks,0)/e.students.length) : 0;
-      html+=`<div class="exam-card" onclick="navToExam('${classId}','${e.id}')">
-        <div class="exam-card-title">${e.title}</div>
-        <div class="exam-card-date">${formatDate(e.date)}</div>
-        <div class="exam-card-stats">
-          <div class="exam-stat"><div class="exam-stat-val">${e.totalScore}</div><div class="exam-stat-lbl">Total</div></div>
-          <div class="exam-stat"><div class="exam-stat-val">${e.highestScore}</div><div class="exam-stat-lbl">Highest</div></div>
-          <div class="exam-stat"><div class="exam-stat-val">${avg}</div><div class="exam-stat-lbl">Average</div></div>
-          <div class="exam-stat"><div class="exam-stat-val">${e.students.length}</div><div class="exam-stat-lbl">Students</div></div>
-        </div>
-      </div>`;
-    });
+/* ═══════════════════════════════════════════════════════
+   HOME PAGE
+   ═══════════════════════════════════════════════════════ */
+function renderHome() {
+  var d = getData();
+  var te = 0, ts = 0;
+  for (var i = 0; i < d.classes.length; i++) {
+    var c = d.classes[i];
+    te += c.exams.length;
+    for (var j = 0; j < c.exams.length; j++) ts += c.exams[j].students.length;
   }
-  document.getElementById('examsGrid').innerHTML=html;
+  document.getElementById('heroStats').innerHTML =
+    '<div class="hero-stat"><div class="hero-stat-num">' + d.classes.length + '</div><div class="hero-stat-lbl">Classes</div></div>' +
+    '<div style="width:1px;height:30px;background:var(--border)"></div>' +
+    '<div class="hero-stat"><div class="hero-stat-num">' + te + '</div><div class="hero-stat-lbl">Exams</div></div>' +
+    '<div style="width:1px;height:30px;background:var(--border)"></div>' +
+    '<div class="hero-stat"><div class="hero-stat-num">' + ts + '</div><div class="hero-stat-lbl">Results</div></div>';
+
+  var icons = ['📚','📖','📓','📋','📗','📘','🎓','🏫'];
+  var ch = '';
+  for (var i = 0; i < d.classes.length; i++) {
+    var c = d.classes[i];
+    var ec = c.exams.length;
+    var sc = 0;
+    for (var j = 0; j < c.exams.length; j++) sc += c.exams[j].students.length;
+    var sch = null;
+    if (d.schedules) for (var k = 0; k < d.schedules.length; k++) {
+      if (d.schedules[k].classId === c.id) { sch = d.schedules[k]; break; }
+    }
+    var nh = sch ? '<div class="class-card-next">Next: <span>' + escHtml(sch.title) + ' — ' + formatDate(sch.date) + '</span></div>' : '';
+    ch += '<div class="class-card" onclick="navToClass(\'' + c.id + '\')">' +
+      '<div class="class-card-icon">' + (c.icon || icons[i % icons.length]) + '</div>' +
+      '<div class="class-card-name">' + escHtml(c.name) + '</div>' +
+      '<div class="class-card-count">' + ec + ' exam' + (ec !== 1 ? 's' : '') + ' · ' + sc + ' result' + (sc !== 1 ? 's' : '') + '</div>' +
+      nh + '<div class="class-card-arrow">›</div></div>';
+  }
+  document.getElementById('classesGrid').innerHTML = ch || '<div class="no-data">No classes added yet.</div>';
+
+  /* Upcoming */
+  var schs = d.schedules || [];
+  var uh = '';
+  for (var i = schs.length - 1; i >= 0 && i >= schs.length - 5; i--) {
+    var s = schs[i];
+    var cls = null;
+    for (var j = 0; j < d.classes.length; j++) if (d.classes[j].id === s.classId) { cls = d.classes[j]; break; }
+    if (!cls) continue;
+    uh += '<div class="upcoming-item"><div><div class="upcoming-class">' + escHtml(cls.name) + '</div><div class="upcoming-exam">' + escHtml(s.title) + '</div></div><div class="upcoming-date">' + formatDate(s.date) + '</div></div>';
+  }
+  document.getElementById('upcomingList').innerHTML = uh || '<div class="no-data">No upcoming exams scheduled</div>';
+
+  /* Recent results */
+  var ae = [];
+  for (var i = 0; i < d.classes.length; i++) {
+    var c = d.classes[i];
+    for (var j = 0; j < c.exams.length; j++) {
+      ae.push({id: c.exams[j].id, title: c.exams[j].title, className: c.name, classId: c.id, students: c.exams[j].students, date: c.exams[j].date});
+    }
+  }
+  ae.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+  var rh = '';
+  for (var i = 0; i < Math.min(5, ae.length); i++) {
+    var e = ae[i];
+    rh += '<div class="upcoming-item" onclick="navToExam(\'' + e.classId + '\',\'' + e.id + '\')" style="cursor:pointer"><div><div class="upcoming-class">' + escHtml(e.title) + '</div><div class="upcoming-exam">' + escHtml(e.className) + '</div></div><div class="upcoming-date">' + e.students.length + ' students</div></div>';
+  }
+  document.getElementById('recentList').innerHTML = rh || '<div class="no-data">No results published yet</div>';
 }
 
-// ═══════════════════════════════════════════════════════════
-//  EXAM RESULTS PAGE
-// ═══════════════════════════════════════════════════════════
-function renderExamPage(classId, examId){
-  const d   = getData();
-  const cls = d.classes.find(c=>c.id===classId);
-  if(!cls){goHome();return;}
-  const exam = cls.exams.find(e=>e.id===examId);
-  if(!exam){navToClass(classId);return;}
+/* ═══════════════════════════════════════════════════════
+   CLASS PAGE
+   ═══════════════════════════════════════════════════════ */
+function renderClassPage(classId) {
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === classId) { cls = d.classes[i]; break; }
+  if (!cls) { goHome(); return; }
 
-  document.getElementById('examBreadcrumb').innerHTML=`
-    <span onclick="goHome()">Home</span><span class="sep">›</span>
-    <span onclick="navToClass('${classId}')">${cls.name}</span><span class="sep">›</span>
-    <span>${exam.title}</span>`;
+  document.getElementById('classBreadcrumb').innerHTML = '<span onclick="goHome()">Home</span><span class="sep">›</span><span>' + escHtml(cls.name) + '</span>';
+  document.getElementById('classPageTitle').textContent = cls.name;
+  document.getElementById('classPageSub').textContent = cls.exams.length + ' exam' + (cls.exams.length !== 1 ? 's' : '') + ' available';
+
+  var sch = null;
+  if (d.schedules) for (var i = 0; i < d.schedules.length; i++) if (d.schedules[i].classId === classId) { sch = d.schedules[i]; break; }
+  document.getElementById('classNextExamBanner').innerHTML = sch ?
+    '<div class="next-exam-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><div><strong>Next Exam:</strong> ' + escHtml(sch.title) + ' on <strong>' + formatDate(sch.date) + '</strong></div></div>' : '';
+
+  var h = '';
+  if (!cls.exams.length) {
+    h = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">No exams yet</div><div class="empty-state-sub">Check back later for results</div></div>';
+  } else {
+    var sorted = cls.exams.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+    for (var i = 0; i < sorted.length; i++) {
+      var e = sorted[i];
+      var avg = 0;
+      if (e.students.length) { var sm = 0; for (var j = 0; j < e.students.length; j++) sm += e.students[j].marks; avg = Math.round(sm / e.students.length); }
+      h += '<div class="exam-card" onclick="navToExam(\'' + classId + '\',\'' + e.id + '\')"><div class="exam-card-title">' + escHtml(e.title) + '</div><div class="exam-card-date">' + formatDate(e.date) + '</div><div class="exam-card-stats"><div class="exam-stat"><div class="exam-stat-val">' + e.totalScore + '</div><div class="exam-stat-lbl">Total</div></div><div class="exam-stat"><div class="exam-stat-val">' + e.highestScore + '</div><div class="exam-stat-lbl">Highest</div></div><div class="exam-stat"><div class="exam-stat-val">' + avg + '</div><div class="exam-stat-lbl">Average</div></div><div class="exam-stat"><div class="exam-stat-val">' + e.students.length + '</div><div class="exam-stat-lbl">Students</div></div></div></div>';
+    }
+  }
+  document.getElementById('examsGrid').innerHTML = h;
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXAM RESULTS PAGE
+   ═══════════════════════════════════════════════════════ */
+function renderExamPage(classId, examId) {
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === classId) { cls = d.classes[i]; break; }
+  if (!cls) { goHome(); return; }
+  var exam = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === examId) { exam = cls.exams[i]; break; }
+  if (!exam) { navToClass(classId); return; }
+
+  document.getElementById('examBreadcrumb').innerHTML = '<span onclick="goHome()">Home</span><span class="sep">›</span><span onclick="navToClass(\'' + classId + '\')">' + escHtml(cls.name) + '</span><span class="sep">›</span><span>' + escHtml(exam.title) + '</span>';
   document.getElementById('examPageTitle').textContent = exam.title;
-  document.getElementById('examPageSub').textContent   = `${cls.name} · ${formatDate(exam.date)}`;
+  document.getElementById('examPageSub').textContent = cls.name + ' · ' + formatDate(exam.date);
 
-  const avg = exam.students.length ? (exam.students.reduce((s,st)=>s+st.marks,0)/exam.students.length).toFixed(1) : 'N/A';
-  const pass = exam.students.filter(s=>((s.marks/exam.totalScore)*100)>=40).length;
-  document.getElementById('resultsMeta').innerHTML=`
-    <div class="meta-pill"><span class="meta-pill-val">${exam.totalScore}</span><span class="meta-pill-lbl" style="margin-left:5px;">Total Marks</span></div>
-    <div class="meta-pill"><span class="meta-pill-val">${exam.highestScore}</span><span class="meta-pill-lbl" style="margin-left:5px;">Class Highest</span></div>
-    <div class="meta-pill"><span class="meta-pill-val">${avg}</span><span class="meta-pill-lbl" style="margin-left:5px;">Average</span></div>
-    <div class="meta-pill"><span class="meta-pill-val">${exam.students.length}</span><span class="meta-pill-lbl" style="margin-left:5px;">Students</span></div>
-    <div class="meta-pill"><span class="meta-pill-val" style="color:var(--green);">${pass}</span><span class="meta-pill-lbl" style="margin-left:5px;">Passed</span></div>
-  `;
+  var avg = 'N/A', pass = 0;
+  if (exam.students.length) {
+    var sm = 0;
+    for (var i = 0; i < exam.students.length; i++) {
+      sm += exam.students[i].marks;
+      if ((exam.students[i].marks / exam.totalScore * 100) >= 40) pass++;
+    }
+    avg = (sm / exam.students.length).toFixed(1);
+  }
+  document.getElementById('resultsMeta').innerHTML =
+    '<div class="meta-pill"><span class="meta-pill-val">' + exam.totalScore + '</span><span class="meta-pill-lbl" style="margin-left:5px">Total</span></div>' +
+    '<div class="meta-pill"><span class="meta-pill-val">' + exam.highestScore + '</span><span class="meta-pill-lbl" style="margin-left:5px">Highest</span></div>' +
+    '<div class="meta-pill"><span class="meta-pill-val">' + avg + '</span><span class="meta-pill-lbl" style="margin-left:5px">Average</span></div>' +
+    '<div class="meta-pill"><span class="meta-pill-val">' + exam.students.length + '</span><span class="meta-pill-lbl" style="margin-left:5px">Students</span></div>' +
+    '<div class="meta-pill"><span class="meta-pill-val" style="color:var(--green)">' + pass + '</span><span class="meta-pill-lbl" style="margin-left:5px">Passed</span></div>';
 
-  const sorted=[...exam.students].sort((a,b)=>b.marks-a.marks);
-  let rows='';
-  sorted.forEach((s,i)=>{
-    const pct=(s.marks/exam.totalScore*100).toFixed(1);
-    const grade=getGrade(parseFloat(pct));
-    const rankClass=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
-    const guardianHTML = isAdmin ? `<td><div class="guardian-mobile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>${s.guardianMobile||'—'}</div></td>` : '';
-    rows+=`<tr>
-      <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
-      <td style="font-weight:500;">${escHtml(s.name)}</td>
-      <td style="font-weight:700;">${s.marks}</td>
-      <td style="color:var(--muted);">${pct}%</td>
-      <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:${pct}%;"></div></div></td>
-      <td><span class="grade-badge ${getGradeClass(grade)}">${grade}</span></td>
-      ${guardianHTML}
-    </tr>`;
-  });
-
-  const guardianHeader = isAdmin ? '<th>Guardian Mobile</th>' : '';
-  document.getElementById('resultsTableWrap').innerHTML = sorted.length ? `
-    <table>
-      <thead><tr><th>Rank</th><th>Student</th><th>Marks</th><th>Percentage</th><th>Progress</th><th>Grade</th>${guardianHeader}</tr></thead>
-      <tbody>${rows}</tbody>
-    </table>` : '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No results added yet</div></div>';
+  var sorted = exam.students.slice().sort(function(a, b) { return b.marks - a.marks; });
+  var rows = '';
+  var gh = isAdmin ? '<th>Guardian</th>' : '';
+  for (var i = 0; i < sorted.length; i++) {
+    var s = sorted[i];
+    var pct = (s.marks / exam.totalScore * 100).toFixed(1);
+    var gr = getGrade(parseFloat(pct));
+    var rc = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+    var gm = isAdmin ? '<td><div class="guardian-mobile">' + escHtml(s.guardianMobile || '—') + '</div></td>' : '';
+    rows += '<tr><td><span class="rank-badge ' + rc + '">' + (i + 1) + '</span></td><td style="font-weight:500">' + escHtml(s.name) + '</td><td style="font-weight:700">' + s.marks + '</td><td style="color:var(--muted)">' + pct + '%</td><td><div class="pct-bar-wrap"><div class="pct-bar" style="width:' + pct + '%"></div></div></td><td><span class="grade-badge ' + gradeClass(gr) + '">' + gr + '</span></td>' + gm + '</tr>';
+  }
+  document.getElementById('resultsTableWrap').innerHTML = sorted.length ?
+    '<table><thead><tr><th>Rank</th><th>Student</th><th>Marks</th><th>Percentage</th><th>Progress</th><th>Grade</th>' + gh + '</tr></thead><tbody>' + rows + '</tbody></table>' :
+    '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No results added yet</div></div>';
 }
 
-// ═══════════════════════════════════════════════════════════
-//  RECAPS PAGE
-// ═══════════════════════════════════════════════════════════
-function setRecapPeriod(p){
-  recapPeriod=p;
-  document.querySelectorAll('.recap-tab').forEach(t=>{
-    t.classList.toggle('active',t.textContent.toLowerCase().includes(p));
-  });
+/* ═══════════════════════════════════════════════════════
+   RECAPS PAGE
+   ═══════════════════════════════════════════════════════ */
+function setRecapPeriod(p, btn) {
+  recapPeriod = p;
+  var tabs = document.querySelectorAll('.recap-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  if (btn) btn.classList.add('active');
   renderRecapsPage();
 }
-function renderRecapsPage(){
-  const d = getData();
-  const filterEl = document.getElementById('recapFilters');
-  let classOpts = '<option value="all">All Classes</option>'+d.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  filterEl.innerHTML=`
-    <div class="form-group"><select class="neu-input" id="recapClassFilter" onchange="renderRecapsPage()" style="min-width:180px;">${classOpts}</select></div>
-  `;
-  const selClass = document.getElementById('recapClassFilter').value||'all';
-  const classes  = selClass==='all' ? d.classes : d.classes.filter(c=>c.id===selClass);
 
-  // Aggregate students across all exams
-  let allResults=[];
-  classes.forEach(cls=>{
-    cls.exams.forEach(exam=>{
-      exam.students.forEach(s=>{
-        allResults.push({
-          studentName:s.name,
-          marks:s.marks,
-          totalScore:exam.totalScore,
-          examTitle:exam.title,
-          className:cls.name,
-          classId:cls.id,
-          date:exam.date,
-          pct:exam.totalScore>0?(s.marks/exam.totalScore*100):0
-        });
-      });
-    });
-  });
+function renderRecapsPage() {
+  var d = getData();
+  var co = '<option value="all">All Classes</option>';
+  for (var i = 0; i < d.classes.length; i++) co += '<option value="' + d.classes[i].id + '">' + escHtml(d.classes[i].name) + '</option>';
+  document.getElementById('recapFilters').innerHTML = '<div class="form-group"><select class="neu-input" id="recapClassFilter" onchange="renderRecapsPage()" style="min-width:180px">' + co + '</select></div>';
 
-  // Filter by period (simple date grouping)
-  const now=new Date();
-  let filtered=allResults;
-  if(recapPeriod==='weekly'){
-    const weekAgo=new Date(now-7*24*60*60*1000);
-    filtered=allResults.filter(r=>new Date(r.date)>=weekAgo);
-  } else if(recapPeriod==='monthly'){
-    const monthAgo=new Date(now.getFullYear(),now.getMonth()-1,now.getDate());
-    filtered=allResults.filter(r=>new Date(r.date)>=monthAgo);
-  } else {
-    const yearAgo=new Date(now.getFullYear()-1,now.getMonth(),now.getDate());
-    filtered=allResults.filter(r=>new Date(r.date)>=yearAgo);
+  var sc = (document.getElementById('recapClassFilter') || {}).value || 'all';
+  var cls = sc === 'all' ? d.classes : d.classes.filter(function(c) { return c.id === sc; });
+
+  var ar = [];
+  for (var i = 0; i < cls.length; i++) {
+    var cl = cls[i];
+    for (var j = 0; j < cl.exams.length; j++) {
+      var ex = cl.exams[j];
+      for (var k = 0; k < ex.students.length; k++) {
+        var s = ex.students[k];
+        ar.push({name: s.name, marks: s.marks, total: ex.totalScore, className: cl.name, date: ex.date, pct: ex.totalScore > 0 ? (s.marks / ex.totalScore * 100) : 0});
+      }
+    }
   }
 
-  // Summary cards
-  const totalMarksObt = filtered.reduce((s,r)=>s+r.marks,0);
-  const totalPossible = filtered.reduce((s,r)=>s+r.totalScore,0);
-  const avgPct = filtered.length ? (filtered.reduce((s,r)=>s+r.pct,0)/filtered.length).toFixed(1) : 0;
-  document.getElementById('recapSummaryCards').innerHTML=`
-    <div class="summary-card"><div class="summary-card-val">${filtered.length}</div><div class="summary-card-lbl">Total Results</div></div>
-    <div class="summary-card"><div class="summary-card-val">${totalMarksObt}</div><div class="summary-card-lbl">Marks Obtained</div></div>
-    <div class="summary-card"><div class="summary-card-val">${totalPossible}</div><div class="summary-card-lbl">Total Possible</div></div>
-    <div class="summary-card"><div class="summary-card-val">${avgPct}%</div><div class="summary-card-lbl">Avg Percentage</div></div>
-  `;
+  var now = new Date(), f = ar;
+  if (recapPeriod === 'weekly') { var wa = new Date(now - 7 * 864e5); f = ar.filter(function(r) { return new Date(r.date) >= wa; }); }
+  else if (recapPeriod === 'monthly') { var ma = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate()); f = ar.filter(function(r) { return new Date(r.date) >= ma; }); }
+  else { var ya = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()); f = ar.filter(function(r) { return new Date(r.date) >= ya; }); }
 
-  // Aggregate by student name for ranking
-  const byStudent={};
-  filtered.forEach(r=>{
-    const key=r.studentName+'|'+r.className;
-    if(!byStudent[key]) byStudent[key]={name:r.studentName,className:r.className,totalObt:0,totalPoss:0,exams:0};
-    byStudent[key].totalObt+=r.marks;
-    byStudent[key].totalPoss+=r.totalScore;
-    byStudent[key].exams++;
-  });
-  const ranking=Object.values(byStudent).sort((a,b)=>(b.totalObt/b.totalPoss)-(a.totalObt/a.totalPoss));
-  let rows='';
-  ranking.forEach((r,i)=>{
-    const pct=r.totalPoss>0?(r.totalObt/r.totalPoss*100).toFixed(1):0;
-    const grade=getGrade(parseFloat(pct));
-    const rankClass=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
-    rows+=`<tr>
-      <td><span class="rank-badge ${rankClass}">${i+1}</span></td>
-      <td style="font-weight:500;">${escHtml(r.name)}</td>
-      <td>${r.className}</td>
-      <td style="font-weight:700;">${r.totalObt}</td>
-      <td style="color:var(--muted);">${r.totalPoss}</td>
-      <td>${pct}%</td>
-      <td><span class="grade-badge ${getGradeClass(grade)}">${grade}</span></td>
-      <td style="color:var(--muted);">${r.exams}</td>
-    </tr>`;
-  });
-  document.getElementById('recapTableContainer').innerHTML = rows ? `
-    <div class="results-table-wrap">
-      <table>
-        <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Marks Obtained</th><th>Total Possible</th><th>Avg %</th><th>Grade</th><th>Exams</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>` : '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No data for this period</div><div class="empty-state-sub">Results will appear here once exams are added</div></div>';
+  var tmo = 0, tp = 0;
+  for (var i = 0; i < f.length; i++) { tmo += f[i].marks; tp += f[i].total; }
+  var ap = f.length ? (f.reduce(function(s, r) { return s + r.pct; }, 0) / f.length).toFixed(1) : 0;
+
+  document.getElementById('recapSummaryCards').innerHTML =
+    '<div class="summary-card"><div class="summary-card-val">' + f.length + '</div><div class="summary-card-lbl">Total Results</div></div>' +
+    '<div class="summary-card"><div class="summary-card-val">' + tmo + '</div><div class="summary-card-lbl">Marks Obtained</div></div>' +
+    '<div class="summary-card"><div class="summary-card-val">' + tp + '</div><div class="summary-card-lbl">Total Possible</div></div>' +
+    '<div class="summary-card"><div class="summary-card-val">' + ap + '%</div><div class="summary-card-lbl">Avg Percentage</div></div>';
+
+  var bs = {};
+  for (var i = 0; i < f.length; i++) {
+    var r = f[i], key = r.name + '|' + r.className;
+    if (!bs[key]) bs[key] = {name: r.name, className: r.className, to: 0, tp: 0, ex: 0};
+    bs[key].to += r.marks; bs[key].tp += r.total; bs[key].ex++;
+  }
+  var rk = Object.values(bs).sort(function(a, b) { return (b.to / Math.max(b.tp, 1)) - (a.to / Math.max(a.tp, 1)); });
+  var rows = '';
+  for (var i = 0; i < rk.length; i++) {
+    var r = rk[i], p = r.tp > 0 ? (r.to / r.tp * 100).toFixed(1) : 0;
+    var g = getGrade(parseFloat(p));
+    var rc = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+    rows += '<tr><td><span class="rank-badge ' + rc + '">' + (i + 1) + '</span></td><td style="font-weight:500">' + escHtml(r.name) + '</td><td>' + escHtml(r.className) + '</td><td style="font-weight:700">' + r.to + '</td><td style="color:var(--muted)">' + r.tp + '</td><td>' + p + '%</td><td><span class="grade-badge ' + gradeClass(g) + '">' + g + '</span></td><td style="color:var(--muted)">' + r.ex + '</td></tr>';
+  }
+  document.getElementById('recapTableContainer').innerHTML = rows ?
+    '<div class="results-table-wrap"><table><thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Marks</th><th>Total</th><th>Avg %</th><th>Grade</th><th>Exams</th></tr></thead><tbody>' + rows + '</tbody></table></div>' :
+    '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">No data for this period</div></div>';
 }
 
-// ═══════════════════════════════════════════════════════════
-//  ADMIN PANEL
-// ═══════════════════════════════════════════════════════════
-function renderAdminPanel(){
-  if(!isAdmin){goHome();return;}
+/* ═══════════════════════════════════════════════════════
+   ADMIN PANEL
+   ═══════════════════════════════════════════════════════ */
+function renderAdminPanel() {
+  if (!isAdmin) { goHome(); return; }
   renderAdminStats();
   renderAdminClassesList();
   populateAdminSelects();
@@ -1347,427 +877,383 @@ function renderAdminPanel(){
   renderAdminStudentsList();
   renderScheduleList();
   renderAdminRecapOverview();
+  updateCloudAdminUI();
 }
-function setAdminSection(sec){
-  document.querySelectorAll('.admin-section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.admin-nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('section-'+sec).classList.add('active');
-  document.querySelector(`[data-section="${sec}"]`).classList.add('active');
-  if(sec==='students') renderAdminStudentsList();
-  if(sec==='exams')    renderAdminExamsList();
-  if(sec==='schedule') renderScheduleList();
-  if(sec==='recapAdmin') renderAdminRecapOverview();
+
+function setAdminSection(s) {
+  var secs = document.querySelectorAll('.admin-section');
+  for (var i = 0; i < secs.length; i++) secs[i].classList.remove('active');
+  var navs = document.querySelectorAll('.admin-nav-item');
+  for (var i = 0; i < navs.length; i++) navs[i].classList.remove('active');
+  document.getElementById('section-' + s).classList.add('active');
+  var navEl = document.querySelector('[data-section="' + s + '"]');
+  if (navEl) navEl.classList.add('active');
+  if (s === 'students') renderAdminStudentsList();
+  if (s === 'exams') renderAdminExamsList();
+  if (s === 'schedule') renderScheduleList();
+  if (s === 'recapAdmin') renderAdminRecapOverview();
 }
-function renderAdminStats(){
-  const d=getData();
-  let totalExams=0,totalStudents=0,totalClasses=d.classes.length;
-  d.classes.forEach(c=>{ totalExams+=c.exams.length; c.exams.forEach(e=>totalStudents+=e.students.length); });
-  document.getElementById('adminStatGrid').innerHTML=`
-    <div class="admin-stat-card"><div class="admin-stat-card-num">${totalClasses}</div><div class="admin-stat-card-lbl">Classes</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-card-num">${totalExams}</div><div class="admin-stat-card-lbl">Exams</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-card-num">${totalStudents}</div><div class="admin-stat-card-lbl">Student Results</div></div>
-    <div class="admin-stat-card"><div class="admin-stat-card-num">${(d.schedules||[]).length}</div><div class="admin-stat-card-lbl">Scheduled Dates</div></div>
-  `;
+
+function renderAdminStats() {
+  var d = getData(), te = 0, ts = 0;
+  for (var i = 0; i < d.classes.length; i++) { te += d.classes[i].exams.length; for (var j = 0; j < d.classes[i].exams.length; j++) ts += d.classes[i].exams[j].students.length; }
+  document.getElementById('adminStatGrid').innerHTML =
+    '<div class="admin-stat-card"><div class="admin-stat-card-num">' + d.classes.length + '</div><div class="admin-stat-card-lbl">Classes</div></div>' +
+    '<div class="admin-stat-card"><div class="admin-stat-card-num">' + te + '</div><div class="admin-stat-card-lbl">Exams</div></div>' +
+    '<div class="admin-stat-card"><div class="admin-stat-card-num">' + ts + '</div><div class="admin-stat-card-lbl">Results</div></div>' +
+    '<div class="admin-stat-card"><div class="admin-stat-card-num">' + (d.schedules || []).length + '</div><div class="admin-stat-card-lbl">Scheduled</div></div>';
 }
-function renderAdminClassesList(){
-  const d=getData();
-  let html='';
-  d.classes.forEach(c=>{
-    html+=`<div class="admin-list-item">
-      <div class="admin-list-item-info">
-        <div class="admin-list-item-name">${escHtml(c.name)}</div>
-        <div class="admin-list-item-sub">${c.exams.length} exams</div>
-      </div>
-      <div class="admin-list-item-actions">
-        <button class="btn btn-danger btn-sm" onclick="deleteClass('${c.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-          Remove
-        </button>
-      </div>
-    </div>`;
-  });
-  document.getElementById('classesList').innerHTML = html||'<div class="no-data">No classes yet.</div>';
+
+function renderAdminClassesList() {
+  var d = getData(), h = '';
+  for (var i = 0; i < d.classes.length; i++) {
+    var c = d.classes[i];
+    h += '<div class="admin-list-item"><div class="admin-list-item-info"><div class="admin-list-item-name">' + escHtml(c.name) + '</div><div class="admin-list-item-sub">' + c.exams.length + ' exams</div></div><div class="admin-list-item-actions"><button class="btn btn-danger btn-sm" onclick="deleteClass(\'' + c.id + '\')">Remove</button></div></div>';
+  }
+  document.getElementById('classesList').innerHTML = h || '<div class="no-data">No classes yet.</div>';
 }
-function populateAdminSelects(){
-  const d=getData();
-  const opts=d.classes.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  ['examClassSelect','examFilterClass','stuClassSelect','stuFilterClass','schedClassSelect'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){
-      const prev=el.value;
-      el.innerHTML=(id.includes('Filter')||id==='examFilterClass'?'<option value="all">All Classes</option>':'')+opts;
-      if(prev) el.value=prev;
-    }
-  });
+
+function populateAdminSelects() {
+  var d = getData(), o = '';
+  for (var i = 0; i < d.classes.length; i++) o += '<option value="' + d.classes[i].id + '">' + escHtml(d.classes[i].name) + '</option>';
+  var ids1 = ['examClassSelect', 'stuClassSelect', 'schedClassSelect'];
+  var ids2 = ['examFilterClass', 'stuFilterClass'];
+  for (var j = 0; j < ids1.length; j++) { var el = document.getElementById(ids1[j]); if (el) { var pv = el.value; el.innerHTML = o; if (pv) el.value = pv; } }
+  for (var j = 0; j < ids2.length; j++) { var el = document.getElementById(ids2[j]); if (el) { var pv = el.value; el.innerHTML = '<option value="all">All Classes</option>' + o; if (pv) el.value = pv; } }
   updateStuExamSelect();
   updateStuFilterExam();
   updateSchedExamSelect();
 }
-function addClass(){
-  const name=document.getElementById('newClassName').value.trim();
-  if(!name)return showToast('Enter a class name','error');
-  const d=getData();
-  const icons=['📚','📖','📓','📋','📗','📘','🎓','🏫'];
-  d.classes.push({id:uid(),name,icon:icons[d.classes.length%icons.length],exams:[]});
+
+function addClass() {
+  var n = document.getElementById('newClassName').value.trim();
+  if (!n) return showToast('Enter a class name', 'error');
+  var d = getData(), icons = ['📚','📖','📓','📋','📗','📘','🎓','🏫'];
+  d.classes.push({id: uid(), name: n, icon: icons[d.classes.length % icons.length], exams: []});
   saveData(d);
-  document.getElementById('newClassName').value='';
-  renderAdminClassesList();
-  renderAdminStats();
-  populateAdminSelects();
-  showToast('Class added!','success');
+  document.getElementById('newClassName').value = '';
+  renderAdminClassesList(); renderAdminStats(); populateAdminSelects();
+  showToast('Class added!', 'success');
 }
-function deleteClass(classId){
-  if(!confirm('Delete this class and all its exams/results?'))return;
-  const d=getData();
-  d.classes=d.classes.filter(c=>c.id!==classId);
-  d.schedules=(d.schedules||[]).filter(s=>s.classId!==classId);
+
+function deleteClass(id) {
+  if (!confirm('Delete this class and all its exams/results?')) return;
+  var d = getData();
+  d.classes = d.classes.filter(function(c) { return c.id !== id; });
+  d.schedules = (d.schedules || []).filter(function(s) { return s.classId !== id; });
   saveData(d);
-  renderAdminClassesList();
-  renderAdminStats();
-  populateAdminSelects();
-  renderAdminExamsList();
-  showToast('Class removed','');
+  renderAdminClassesList(); renderAdminStats(); populateAdminSelects(); renderAdminExamsList();
+  showToast('Class removed.', '');
 }
-function addExam(){
-  const classId=document.getElementById('examClassSelect').value;
-  const title=document.getElementById('examTitle').value.trim();
-  const date=document.getElementById('examDate').value;
-  const total=parseInt(document.getElementById('examTotal').value)||100;
-  const highest=parseInt(document.getElementById('examHighest').value)||0;
-  if(!classId||!title||!date)return showToast('Fill all required fields','error');
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  cls.exams.push({id:uid(),title,date,totalScore:total,highestScore:highest,students:[]});
+
+function addExam() {
+  var cid = document.getElementById('examClassSelect').value;
+  var t = document.getElementById('examTitle').value.trim();
+  var dt = document.getElementById('examDate').value;
+  var tot = parseInt(document.getElementById('examTotal').value) || 100;
+  var hi = parseInt(document.getElementById('examHighest').value) || 0;
+  if (!cid || !t || !dt) return showToast('Fill all required fields', 'error');
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  cls.exams.push({id: uid(), title: t, date: dt, totalScore: tot, highestScore: hi, students: []});
   saveData(d);
-  ['examTitle','examDate','examTotal','examHighest'].forEach(id=>document.getElementById(id).value='');
-  renderAdminExamsList();
-  renderAdminStats();
-  populateAdminSelects();
-  showToast('Exam created!','success');
+  document.getElementById('examTitle').value = '';
+  document.getElementById('examDate').value = '';
+  document.getElementById('examTotal').value = '';
+  document.getElementById('examHighest').value = '';
+  renderAdminExamsList(); renderAdminStats(); populateAdminSelects();
+  showToast('Exam created!', 'success');
 }
-function renderAdminExamsList(){
-  const d=getData();
-  const filterClass=document.getElementById('examFilterClass')?.value||'all';
-  const classes=filterClass==='all'?d.classes:d.classes.filter(c=>c.id===filterClass);
-  let html='';
-  classes.forEach(cls=>{
-    cls.exams.forEach(e=>{
-      html+=`<div class="admin-list-item">
-        <div class="admin-list-item-info">
-          <div class="admin-list-item-name">${escHtml(e.title)}</div>
-          <div class="admin-list-item-sub">${cls.name} · ${formatDate(e.date)} · Total: ${e.totalScore} · Highest: ${e.highestScore} · ${e.students.length} students</div>
-        </div>
-        <div class="admin-list-item-actions">
-          <button class="btn btn-secondary btn-sm" onclick="openEditExam('${cls.id}','${e.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit
-          </button>
-          <button class="btn btn-danger btn-sm" onclick="deleteExam('${cls.id}','${e.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-            Delete
-          </button>
-        </div>
-      </div>`;
-    });
-  });
-  document.getElementById('adminExamsList').innerHTML=html||'<div class="no-data">No exams yet.</div>';
+
+function renderAdminExamsList() {
+  var d = getData();
+  var fc = document.getElementById('examFilterClass');
+  var fv = fc ? fc.value : 'all';
+  var cls = fv === 'all' ? d.classes : d.classes.filter(function(c) { return c.id === fv; });
+  var h = '';
+  for (var i = 0; i < cls.length; i++) {
+    var c = cls[i];
+    for (var j = 0; j < c.exams.length; j++) {
+      var e = c.exams[j];
+      h += '<div class="admin-list-item"><div class="admin-list-item-info"><div class="admin-list-item-name">' + escHtml(e.title) + '</div><div class="admin-list-item-sub">' + escHtml(c.name) + ' · ' + formatDate(e.date) + ' · Total: ' + e.totalScore + ' · Highest: ' + e.highestScore + ' · ' + e.students.length + ' students</div></div><div class="admin-list-item-actions"><button class="btn btn-secondary btn-sm" onclick="openEditExam(\'' + c.id + '\',\'' + e.id + '\')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteExam(\'' + c.id + '\',\'' + e.id + '\')">Delete</button></div></div>';
+    }
+  }
+  document.getElementById('adminExamsList').innerHTML = h || '<div class="no-data">No exams yet.</div>';
 }
-function openEditExam(classId,examId){
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  const exam=cls.exams.find(e=>e.id===examId);
-  if(!exam)return;
-  document.getElementById('editExamClassId').value=classId;
-  document.getElementById('editExamId').value=examId;
-  document.getElementById('editExamTitle').value=exam.title;
-  document.getElementById('editExamDate').value=exam.date;
-  document.getElementById('editExamTotal').value=exam.totalScore;
-  document.getElementById('editExamHighest').value=exam.highestScore;
+
+function openEditExam(cid, eid) {
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  var ex = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === eid) { ex = cls.exams[i]; break; }
+  if (!ex) return;
+  document.getElementById('editExamClassId').value = cid;
+  document.getElementById('editExamId').value = eid;
+  document.getElementById('editExamTitle').value = ex.title;
+  document.getElementById('editExamDate').value = ex.date;
+  document.getElementById('editExamTotal').value = ex.totalScore;
+  document.getElementById('editExamHighest').value = ex.highestScore;
   openModal('editExamModal');
 }
-function saveEditExam(){
-  const classId=document.getElementById('editExamClassId').value;
-  const examId=document.getElementById('editExamId').value;
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  const exam=cls.exams.find(e=>e.id===examId);
-  if(!exam)return;
-  exam.title=document.getElementById('editExamTitle').value.trim();
-  exam.date=document.getElementById('editExamDate').value;
-  exam.totalScore=parseInt(document.getElementById('editExamTotal').value)||100;
-  exam.highestScore=parseInt(document.getElementById('editExamHighest').value)||0;
-  saveData(d);
-  closeModal('editExamModal');
-  renderAdminExamsList();
-  showToast('Exam updated!','success');
+
+function saveEditExam() {
+  var cid = document.getElementById('editExamClassId').value, eid = document.getElementById('editExamId').value;
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  var ex = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === eid) { ex = cls.exams[i]; break; }
+  if (!ex) return;
+  ex.title = document.getElementById('editExamTitle').value.trim();
+  ex.date = document.getElementById('editExamDate').value;
+  ex.totalScore = parseInt(document.getElementById('editExamTotal').value) || 100;
+  ex.highestScore = parseInt(document.getElementById('editExamHighest').value) || 0;
+  saveData(d); closeModal('editExamModal'); renderAdminExamsList();
+  showToast('Exam updated!', 'success');
 }
-function deleteExam(classId,examId){
-  if(!confirm('Delete this exam and all its results?'))return;
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  cls.exams=cls.exams.filter(e=>e.id!==examId);
-  saveData(d);
-  renderAdminExamsList();
-  renderAdminStats();
-  populateAdminSelects();
-  showToast('Exam deleted','');
+
+function deleteExam(cid, eid) {
+  if (!confirm('Delete this exam and all its results?')) return;
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  cls.exams = cls.exams.filter(function(e) { return e.id !== eid; });
+  saveData(d); renderAdminExamsList(); renderAdminStats(); populateAdminSelects();
+  showToast('Exam deleted.', '');
 }
-function updateStuExamSelect(){
-  const classId=document.getElementById('stuClassSelect')?.value;
-  const el=document.getElementById('stuExamSelect');
-  if(!el)return;
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  el.innerHTML=cls?(cls.exams.map(e=>`<option value="${e.id}">${e.title}</option>`).join('')||'<option>No exams</option>'):'<option>Select class first</option>';
+
+function updateStuExamSelect() {
+  var cid = document.getElementById('stuClassSelect'), el = document.getElementById('stuExamSelect');
+  if (!el || !cid) return;
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid.value) { cls = d.classes[i]; break; }
+  el.innerHTML = cls ? (cls.exams.map(function(e) { return '<option value="' + e.id + '">' + escHtml(e.title) + '</option>'; }).join('') || '<option>No exams</option>') : '<option>Select class first</option>';
 }
-function updateStuFilterExam(){
-  const classId=document.getElementById('stuFilterClass')?.value;
-  const el=document.getElementById('stuFilterExam');
-  if(!el)return;
-  const d=getData();
-  if(classId==='all'){ el.innerHTML='<option value="all">All Exams</option>'; return; }
-  const cls=d.classes.find(c=>c.id===classId);
-  el.innerHTML='<option value="all">All Exams</option>'+(cls?cls.exams.map(e=>`<option value="${e.id}">${e.title}</option>`).join(''):'');
+
+function updateStuFilterExam() {
+  var cid = document.getElementById('stuFilterClass'), el = document.getElementById('stuFilterExam');
+  if (!el || !cid) return;
+  var d = getData();
+  if (cid.value === 'all') { el.innerHTML = '<option value="all">All Exams</option>'; return; }
+  var cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid.value) { cls = d.classes[i]; break; }
+  el.innerHTML = '<option value="all">All Exams</option>' + (cls ? cls.exams.map(function(e) { return '<option value="' + e.id + '">' + escHtml(e.title) + '</option>'; }).join('') : '');
   renderAdminStudentsList();
 }
-function addStudent(){
-  const classId=document.getElementById('stuClassSelect').value;
-  const examId=document.getElementById('stuExamSelect').value;
-  const name=document.getElementById('stuName').value.trim();
-  const marks=parseInt(document.getElementById('stuMarks').value)||0;
-  const guardian=document.getElementById('stuGuardian').value.trim();
-  if(!name)return showToast('Enter student name','error');
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  const exam=cls.exams.find(e=>e.id===examId);
-  if(!exam)return showToast('Select an exam first','error');
-  exam.students.push({id:uid(),name,marks,guardianMobile:guardian});
-  if(marks>exam.highestScore) exam.highestScore=marks;
+
+function addStudent() {
+  var cid = document.getElementById('stuClassSelect').value, eid = document.getElementById('stuExamSelect').value;
+  var nm = document.getElementById('stuName').value.trim(), mk = parseInt(document.getElementById('stuMarks').value) || 0;
+  var gm = document.getElementById('stuGuardian').value.trim();
+  if (!nm) return showToast('Enter student name', 'error');
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  var ex = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === eid) { ex = cls.exams[i]; break; }
+  if (!ex) return showToast('Select an exam first', 'error');
+  ex.students.push({id: uid(), name: nm, marks: mk, guardianMobile: gm});
+  if (mk > ex.highestScore) ex.highestScore = mk;
   saveData(d);
-  document.getElementById('stuName').value='';
-  document.getElementById('stuMarks').value='';
-  document.getElementById('stuGuardian').value='';
-  renderAdminStudentsList();
-  renderAdminStats();
-  showToast('Student added!','success');
+  document.getElementById('stuName').value = '';
+  document.getElementById('stuMarks').value = '';
+  document.getElementById('stuGuardian').value = '';
+  renderAdminStudentsList(); renderAdminStats();
+  showToast('Student added!', 'success');
 }
-function renderAdminStudentsList(){
-  const d=getData();
-  const filterClass=document.getElementById('stuFilterClass')?.value||'all';
-  const filterExam=document.getElementById('stuFilterExam')?.value||'all';
-  let html='';
-  const classes=filterClass==='all'?d.classes:d.classes.filter(c=>c.id===filterClass);
-  classes.forEach(cls=>{
-    const exams=filterExam==='all'?cls.exams:cls.exams.filter(e=>e.id===filterExam);
-    exams.forEach(exam=>{
-      exam.students.forEach(s=>{
-        const pct=exam.totalScore>0?(s.marks/exam.totalScore*100).toFixed(1):0;
-        html+=`<div class="admin-list-item">
-          <div class="admin-list-item-info">
-            <div class="admin-list-item-name">${escHtml(s.name)}</div>
-            <div class="admin-list-item-sub">${cls.name} · ${exam.title} · ${s.marks}/${exam.totalScore} (${pct}%) · Guardian: ${s.guardianMobile||'N/A'}</div>
-          </div>
-          <div class="admin-list-item-actions">
-            <button class="btn btn-secondary btn-sm" onclick="openEditStudent('${cls.id}','${exam.id}','${s.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              Edit
-            </button>
-            <button class="btn btn-danger btn-sm" onclick="deleteStudent('${cls.id}','${exam.id}','${s.id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-              Remove
-            </button>
-          </div>
-        </div>`;
-      });
-    });
-  });
-  document.getElementById('adminStudentsList').innerHTML=html||'<div class="no-data">No students yet.</div>';
+
+function renderAdminStudentsList() {
+  var d = getData();
+  var fc = (document.getElementById('stuFilterClass') || {}).value || 'all';
+  var fe = (document.getElementById('stuFilterExam') || {}).value || 'all';
+  var h = '', cls = fc === 'all' ? d.classes : d.classes.filter(function(c) { return c.id === fc; });
+  for (var i = 0; i < cls.length; i++) {
+    var c = cls[i];
+    var exs = fe === 'all' ? c.exams : c.exams.filter(function(e) { return e.id === fe; });
+    for (var j = 0; j < exs.length; j++) {
+      var ex = exs[j];
+      for (var k = 0; k < ex.students.length; k++) {
+        var s = ex.students[k];
+        var pct = ex.totalScore > 0 ? (s.marks / ex.totalScore * 100).toFixed(1) : 0;
+        h += '<div class="admin-list-item"><div class="admin-list-item-info"><div class="admin-list-item-name">' + escHtml(s.name) + '</div><div class="admin-list-item-sub">' + escHtml(c.name) + ' · ' + escHtml(ex.title) + ' · ' + s.marks + '/' + ex.totalScore + ' (' + pct + '%) · Guardian: ' + escHtml(s.guardianMobile || 'N/A') + '</div></div><div class="admin-list-item-actions"><button class="btn btn-secondary btn-sm" onclick="openEditStudent(\'' + c.id + '\',\'' + ex.id + '\',\'' + s.id + '\')">Edit</button><button class="btn btn-danger btn-sm" onclick="deleteStudent(\'' + c.id + '\',\'' + ex.id + '\',\'' + s.id + '\')">Remove</button></div></div>';
+      }
+    }
+  }
+  document.getElementById('adminStudentsList').innerHTML = h || '<div class="no-data">No students yet.</div>';
 }
-function openEditStudent(classId,examId,stuId){
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  const exam=cls.exams.find(e=>e.id===examId);
-  if(!exam)return;
-  const stu=exam.students.find(s=>s.id===stuId);
-  if(!stu)return;
-  document.getElementById('editStuClassId').value=classId;
-  document.getElementById('editStuExamId').value=examId;
-  document.getElementById('editStuId').value=stuId;
-  document.getElementById('editStuName').value=stu.name;
-  document.getElementById('editStuMarks').value=stu.marks;
-  document.getElementById('editStuGuardian').value=stu.guardianMobile||'';
+
+function openEditStudent(cid, eid, sid) {
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  var ex = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === eid) { ex = cls.exams[i]; break; }
+  if (!ex) return;
+  var s = null;
+  for (var i = 0; i < ex.students.length; i++) if (ex.students[i].id === sid) { s = ex.students[i]; break; }
+  if (!s) return;
+  document.getElementById('editStuClassId').value = cid;
+  document.getElementById('editStuExamId').value = eid;
+  document.getElementById('editStuId').value = sid;
+  document.getElementById('editStuName').value = s.name;
+  document.getElementById('editStuMarks').value = s.marks;
+  document.getElementById('editStuGuardian').value = s.guardianMobile || '';
   openModal('editStuModal');
 }
-function saveEditStudent(){
-  const classId=document.getElementById('editStuClassId').value;
-  const examId=document.getElementById('editStuExamId').value;
-  const stuId=document.getElementById('editStuId').value;
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  const exam=cls.exams.find(e=>e.id===examId);
-  if(!exam)return;
-  const stu=exam.students.find(s=>s.id===stuId);
-  if(!stu)return;
-  stu.name=document.getElementById('editStuName').value.trim();
-  stu.marks=parseInt(document.getElementById('editStuMarks').value)||0;
-  stu.guardianMobile=document.getElementById('editStuGuardian').value.trim();
-  const maxMarks=Math.max(...exam.students.map(s=>s.marks));
-  exam.highestScore=maxMarks;
-  saveData(d);
-  closeModal('editStuModal');
-  renderAdminStudentsList();
-  showToast('Student updated!','success');
-}
-function deleteStudent(classId,examId,stuId){
-  if(!confirm('Remove this student from the exam?'))return;
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  if(!cls)return;
-  const exam=cls.exams.find(e=>e.id===examId);
-  if(!exam)return;
-  exam.students=exam.students.filter(s=>s.id!==stuId);
-  const maxMarks=exam.students.length?Math.max(...exam.students.map(s=>s.marks)):0;
-  exam.highestScore=maxMarks;
-  saveData(d);
-  renderAdminStudentsList();
-  renderAdminStats();
-  showToast('Student removed','');
-}
-function updateSchedExamSelect(){
-  const classId=document.getElementById('schedClassSelect')?.value;
-  const el=document.getElementById('schedExamSelect');
-  if(!el)return;
-  const d=getData();
-  const cls=d.classes.find(c=>c.id===classId);
-  el.innerHTML='<option value="">— None —</option>'+(cls?cls.exams.map(e=>`<option value="${e.id}">${e.title}</option>`).join(''):'');
-}
-function saveSchedule(){
-  const classId=document.getElementById('schedClassSelect').value;
-  const examId=document.getElementById('schedExamSelect').value;
-  const title=document.getElementById('schedTitle').value.trim();
-  const date=document.getElementById('schedDate').value;
-  if(!classId||!title||!date)return showToast('Fill in class, title and date','error');
-  const d=getData();
-  if(!d.schedules)d.schedules=[];
-  const existing=d.schedules.findIndex(s=>s.classId===classId);
-  const entry={id:uid(),classId,examId:examId||null,title,date};
-  if(existing>-1) d.schedules[existing]=entry;
-  else d.schedules.push(entry);
-  saveData(d);
-  document.getElementById('schedTitle').value='';
-  document.getElementById('schedDate').value='';
-  renderScheduleList();
-  renderAdminStats();
-  showToast('Schedule published!','success');
-}
-function renderScheduleList(){
-  const d=getData();
-  const scheds=d.schedules||[];
-  let html='';
-  scheds.forEach(s=>{
-    const cls=d.classes.find(c=>c.id===s.classId);
-    html+=`<div class="admin-list-item">
-      <div class="admin-list-item-info">
-        <div class="admin-list-item-name">${escHtml(s.title)}</div>
-        <div class="admin-list-item-sub">${cls?cls.name:'Unknown class'} · ${formatDate(s.date)}</div>
-      </div>
-      <div class="admin-list-item-actions">
-        <button class="btn btn-danger btn-sm" onclick="deleteSchedule('${s.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-          Remove
-        </button>
-      </div>
-    </div>`;
-  });
-  document.getElementById('scheduleList').innerHTML=html||'<div class="no-data">No schedules published yet.</div>';
-}
-function deleteSchedule(id){
-  const d=getData();
-  d.schedules=(d.schedules||[]).filter(s=>s.id!==id);
-  saveData(d);
-  renderScheduleList();
-  renderAdminStats();
-  showToast('Schedule removed','');
-}
-function renderAdminRecapOverview(){
-  const d=getData();
-  let html='';
-  d.classes.forEach(cls=>{
-    if(!cls.exams.length)return;
-    const totalStudents=cls.exams.reduce((s,e)=>s+e.students.length,0);
-    const avgScore=cls.exams.length?
-      cls.exams.reduce((sum,e)=>{
-        const a=e.students.length?(e.students.reduce((s,st)=>s+st.marks,0)/e.students.length):0;
-        return sum+(a/e.totalScore*100);
-      },0)/cls.exams.length : 0;
-    html+=`<div class="admin-list-item">
-      <div class="admin-list-item-info">
-        <div class="admin-list-item-name">${cls.name}</div>
-        <div class="admin-list-item-sub">${cls.exams.length} exams · ${totalStudents} results · Avg: ${avgScore.toFixed(1)}%</div>
-      </div>
-      <button class="btn btn-secondary btn-sm" onclick="navToClass('${cls.id}')">View</button>
-    </div>`;
-  });
-  document.getElementById('adminRecapOverview').innerHTML=html||'<div class="no-data">No data yet.</div>';
+
+function saveEditStudent() {
+  var cid = document.getElementById('editStuClassId').value, eid = document.getElementById('editStuExamId').value, sid = document.getElementById('editStuId').value;
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  var ex = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === eid) { ex = cls.exams[i]; break; }
+  if (!ex) return;
+  var s = null;
+  for (var i = 0; i < ex.students.length; i++) if (ex.students[i].id === sid) { s = ex.students[i]; break; }
+  if (!s) return;
+  s.name = document.getElementById('editStuName').value.trim();
+  s.marks = parseInt(document.getElementById('editStuMarks').value) || 0;
+  s.guardianMobile = document.getElementById('editStuGuardian').value.trim();
+  var mx = 0;
+  for (var i = 0; i < ex.students.length; i++) if (ex.students[i].marks > mx) mx = ex.students[i].marks;
+  ex.highestScore = mx;
+  saveData(d); closeModal('editStuModal'); renderAdminStudentsList();
+  showToast('Student updated!', 'success');
 }
 
-// ═══════════════════════════════════════════════════════════
-//  MODAL HELPERS
-// ═══════════════════════════════════════════════════════════
-function openModal(id){ document.getElementById(id).classList.add('show'); }
-function closeModal(id){ document.getElementById(id).classList.remove('show'); }
-document.querySelectorAll('.modal-overlay').forEach(el=>{
-  el.addEventListener('click',e=>{ if(e.target===el) closeModal(el.id); });
-});
+function deleteStudent(cid, eid, sid) {
+  if (!confirm('Remove this student?')) return;
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid) { cls = d.classes[i]; break; }
+  if (!cls) return;
+  var ex = null;
+  for (var i = 0; i < cls.exams.length; i++) if (cls.exams[i].id === eid) { ex = cls.exams[i]; break; }
+  if (!ex) return;
+  ex.students = ex.students.filter(function(s) { return s.id !== sid; });
+  var mx = 0;
+  for (var i = 0; i < ex.students.length; i++) if (ex.students[i].marks > mx) mx = ex.students[i].marks;
+  ex.highestScore = mx;
+  saveData(d); renderAdminStudentsList(); renderAdminStats();
+  showToast('Student removed.', '');
+}
 
-// ═══════════════════════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════════════════════
-let toastTimer;
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='toast show '+(type||'');
+function updateSchedExamSelect() {
+  var cid = document.getElementById('schedClassSelect'), el = document.getElementById('schedExamSelect');
+  if (!el || !cid) return;
+  var d = getData(), cls = null;
+  for (var i = 0; i < d.classes.length; i++) if (d.classes[i].id === cid.value) { cls = d.classes[i]; break; }
+  el.innerHTML = '<option value="">— None —</option>' + (cls ? cls.exams.map(function(e) { return '<option value="' + e.id + '">' + escHtml(e.title) + '</option>'; }).join('') : '');
+}
+
+function saveSchedule() {
+  var cid = document.getElementById('schedClassSelect').value, eid = document.getElementById('schedExamSelect').value;
+  var t = document.getElementById('schedTitle').value.trim(), dt = document.getElementById('schedDate').value;
+  if (!cid || !t || !dt) return showToast('Fill in class, title and date', 'error');
+  var d = getData();
+  if (!d.schedules) d.schedules = [];
+  var idx = -1;
+  for (var i = 0; i < d.schedules.length; i++) if (d.schedules[i].classId === cid) { idx = i; break; }
+  var entry = {id: uid(), classId: cid, examId: eid || null, title: t, date: dt};
+  if (idx >= 0) d.schedules[idx] = entry; else d.schedules.push(entry);
+  saveData(d);
+  document.getElementById('schedTitle').value = '';
+  document.getElementById('schedDate').value = '';
+  renderScheduleList(); renderAdminStats();
+  showToast('Schedule published!', 'success');
+}
+
+function renderScheduleList() {
+  var d = getData(), schs = d.schedules || [], h = '';
+  for (var i = 0; i < schs.length; i++) {
+    var s = schs[i], cls = null;
+    for (var j = 0; j < d.classes.length; j++) if (d.classes[j].id === s.classId) { cls = d.classes[j]; break; }
+    h += '<div class="admin-list-item"><div class="admin-list-item-info"><div class="admin-list-item-name">' + escHtml(s.title) + '</div><div class="admin-list-item-sub">' + (cls ? escHtml(cls.name) : 'Unknown') + ' · ' + formatDate(s.date) + '</div></div><div class="admin-list-item-actions"><button class="btn btn-danger btn-sm" onclick="deleteSchedule(\'' + s.id + '\')">Remove</button></div></div>';
+  }
+  document.getElementById('scheduleList').innerHTML = h || '<div class="no-data">No schedules yet.</div>';
+}
+
+function deleteSchedule(id) {
+  var d = getData();
+  d.schedules = (d.schedules || []).filter(function(s) { return s.id !== id; });
+  saveData(d); renderScheduleList(); renderAdminStats();
+  showToast('Schedule removed.', '');
+}
+
+function renderAdminRecapOverview() {
+  var d = getData(), h = '';
+  for (var i = 0; i < d.classes.length; i++) {
+    var cls = d.classes[i];
+    if (!cls.exams.length) continue;
+    var ts = 0, as = 0, cnt = 0;
+    for (var j = 0; j < cls.exams.length; j++) {
+      var ex = cls.exams[j];
+      ts += ex.students.length;
+      if (ex.students.length) { var sm = 0; for (var k = 0; k < ex.students.length; k++) sm += ex.students[k].marks; as += (sm / ex.students.length / ex.totalScore * 100); cnt++; }
+    }
+    as = cnt > 0 ? (as / cnt).toFixed(1) : 0;
+    h += '<div class="admin-list-item"><div class="admin-list-item-info"><div class="admin-list-item-name">' + escHtml(cls.name) + '</div><div class="admin-list-item-sub">' + cls.exams.length + ' exams · ' + ts + ' results · Avg: ' + as + '%</div></div><button class="btn btn-secondary btn-sm" onclick="navToClass(\'' + cls.id + '\')">View</button></div>';
+  }
+  document.getElementById('adminRecapOverview').innerHTML = h || '<div class="no-data">No data yet.</div>';
+}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL / TOAST
+   ═══════════════════════════════════════════════════════ */
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+var toastTimer;
+function showToast(msg, type) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type || '');
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>{ t.className='toast'; },3000);
+  toastTimer = setTimeout(function() { t.className = 'toast'; }, 3000);
 }
 
-// ═══════════════════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════════════════
-function formatDate(d){
-  if(!d)return'—';
-  try{ return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }catch(e){ return d; }
-}
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+/* ═══════════════════════════════════════════════════════
+   INIT — page always renders immediately, cloud is background
+   ═══════════════════════════════════════════════════════ */
+function init() {
+  /* Ensure local data exists */
+  var d = getData();
+  if (!d.classes || !d.classes.length) {
+    saveData({classes: JSON.parse(JSON.stringify(DEFAULT_CLASSES)), schedules: []}, true);
+  } else if (!d.schedules) {
+    d.schedules = [];
+    saveData(d, true);
+  }
 
-// ═══════════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════════
-async function init(){
-  await bootstrapCloudData();
-  const d=getData();
-  if(!d.classes||!d.classes.length){
-    const fresh={classes:JSON.parse(JSON.stringify(DEFAULT_CLASSES)),schedules:[]};
-    saveData(fresh);
-  } else if(!d.schedules){ d.schedules=[]; saveData(d); }
-  subscribeToCloudUpdates();
+  /* Always render immediately from localStorage — page is usable NOW */
   renderHome();
 
-  // Keyboard: Escape closes modals
-  document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){
-      document.querySelectorAll('.modal-overlay.show').forEach(m=>m.classList.remove('show'));
+  /* Check if we should sync from cloud (background, non-blocking) */
+  var hasCloud = initCloud();
+  if (hasCloud && !isAdmin) {
+    backgroundCloudLoad();
+    startPolling();
+  }
+
+  /* Modal close on overlay click */
+  var overlays = document.querySelectorAll('.modal-overlay');
+  for (var i = 0; i < overlays.length; i++) {
+    (function(el) {
+      el.addEventListener('click', function(e) { if (e.target === el) closeModal(el.id); });
+    })(overlays[i]);
+  }
+
+  /* Escape key closes modals */
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var open = document.querySelectorAll('.modal-overlay.show');
+      for (var i = 0; i < open.length; i++) open[i].classList.remove('show');
     }
   });
 }
+
 init();
 </script>
 </body>
